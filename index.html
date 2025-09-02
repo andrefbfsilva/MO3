@@ -784,10 +784,21 @@
             }, [editingAppId, appForm]);
 
             const addCadeia = () => {
-                if (cadeiaForm.input.trim()) {
-                    const newItem = { ...cadeiaForm, id: Date.now() };
+                const input = document.querySelector('[name="cadeia-input"]').value;
+                const standby = document.querySelector('[name="cadeia-standby"]').checked;
+                const acoes = document.querySelector('[name="cadeia-acoes"]').value;
+                
+                if (input.trim()) {
+                    const newItem = { 
+                        input, 
+                        standby, 
+                        acoes, 
+                        id: Date.now() 
+                    };
                     setCadeiaData([...cadeiaData, newItem]);
-                    setCadeiaForm({ input: '', standby: true, acoes: '' });
+                    document.querySelector('[name="cadeia-input"]').value = '';
+                    document.querySelector('[name="cadeia-standby"]').checked = true;
+                    document.querySelector('[name="cadeia-acoes"]').value = '';
                     setActiveModal(null);
                 }
             };
@@ -1805,13 +1816,12 @@
                                         minHeight: '80px'
                                     }}
                                     rows={3}
-                                    onChange={(e) => setCadeiaForm({...cadeiaForm, input: e.target.value})}
                                 />
                                 <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
-                                        checked={cadeiaForm.standby}
-                                        onChange={(e) => setCadeiaForm({...cadeiaForm, standby: e.target.checked})}
+                                        name="cadeia-standby"
+                                        defaultChecked={true}
                                         className="rounded"
                                     />
                                     <span className="text-sm text-gray-700">Com Standby?</span>
@@ -1830,7 +1840,6 @@
                                         minHeight: '80px'
                                     }}
                                     rows={3}
-                                    onChange={(e) => setCadeiaForm({...cadeiaForm, acoes: e.target.value})}
                                 />
                                 <button
                                     onClick={addCadeia}

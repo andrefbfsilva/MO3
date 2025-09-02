@@ -13,7 +13,7 @@ Aplicação web para base de conhecimento do Control-M.
 
 ## Como usar
 
-1. Abrir o ficheiro `MO3.html` no browser
+1. Abrir o ficheiro `index.html` no browser
 2. Adicionar dados nos módulos usando os botões "+"
 3. Importar escalas através do menu
 

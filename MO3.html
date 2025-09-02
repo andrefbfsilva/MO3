@@ -49,12 +49,41 @@
             white-space: nowrap;
         }
         
-        /* Permitir texto corrido em textareas e inputs de texto */
-        textarea, input[type="text"] {
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word;
+        /* Resetar e configurar textareas corretamente */
+        textarea {
+            font-family: inherit !important;
+            font-size: inherit !important;
+            line-height: 1.5 !important;
+            color: inherit !important;
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            width: 100% !important;
+            min-height: auto !important;
+            resize: vertical !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            box-sizing: border-box !important;
+            outline: none !important;
+        }
+        
+        textarea:focus {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        }
+        
+        /* Textareas específicos do módulo erro */
+        .modal textarea.error-field:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        /* Textareas específicos do módulo cadeia */
+        .modal textarea.cadeia-field:focus {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
         }
         
         /* Layout */
@@ -764,10 +793,21 @@
             };
 
             const addErro = () => {
-                if (erroForm.input.trim()) {
-                    const newItem = { ...erroForm, id: Date.now() };
+                const input = document.querySelector('[name="erro-input"]').value;
+                const erroIdentificado = document.querySelector('[name="erro-identificado"]').value;
+                const instrucao = document.querySelector('[name="erro-instrucao"]').value;
+                
+                if (input.trim()) {
+                    const newItem = { 
+                        input, 
+                        erroIdentificado, 
+                        instrucao, 
+                        id: Date.now() 
+                    };
                     setErroData([...erroData, newItem]);
-                    setErroForm({ input: '', erroIdentificado: '', instrucao: '' });
+                    document.querySelector('[name="erro-input"]').value = '';
+                    document.querySelector('[name="erro-identificado"]').value = '';
+                    document.querySelector('[name="erro-instrucao"]').value = '';
                     setActiveModal(null);
                 }
             };
@@ -1204,7 +1244,7 @@
                         onClick={onClose}
                     >
                         <div 
-                            className={`bg-white rounded-xl p-6 w-full ${sizeClasses[size]} mx-4 shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-auto`}
+                            className={`modal bg-white rounded-xl p-6 w-full ${sizeClasses[size]} mx-4 shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-auto`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-center mb-4">
@@ -1751,11 +1791,20 @@
                     {activeModal === 'cadeia' && (
                         <Modal title="Adicionar Cadeia" onClose={() => setActiveModal(null)}>
                             <div className="space-y-4">
-                                <input
-                                    type="text"
+                                <textarea
+                                    name="cadeia-input"
                                     placeholder="Input"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                    value={cadeiaForm.input}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                        resize: 'vertical',
+                                        minHeight: '80px'
+                                    }}
+                                    rows={3}
                                     onChange={(e) => setCadeiaForm({...cadeiaForm, input: e.target.value})}
                                 />
                                 <label className="flex items-center gap-2">
@@ -1768,10 +1817,19 @@
                                     <span className="text-sm text-gray-700">Com Standby?</span>
                                 </label>
                                 <textarea
+                                    name="cadeia-acoes"
                                     placeholder="Acções"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                        resize: 'vertical',
+                                        minHeight: '80px'
+                                    }}
                                     rows={3}
-                                    value={cadeiaForm.acoes}
                                     onChange={(e) => setCadeiaForm({...cadeiaForm, acoes: e.target.value})}
                                 />
                                 <button
@@ -1787,26 +1845,50 @@
                     {activeModal === 'erro' && (
                         <Modal title="Adicionar Erro" onClose={() => setActiveModal(null)}>
                             <div className="space-y-4">
-                                <input
-                                    type="text"
+                                <textarea
+                                    name="erro-input"
                                     placeholder="Input"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                                    value={erroForm.input}
-                                    onChange={(e) => setErroForm({...erroForm, input: e.target.value})}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Erro Identificado"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                                    value={erroForm.erroIdentificado}
-                                    onChange={(e) => setErroForm({...erroForm, erroIdentificado: e.target.value})}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                        resize: 'vertical',
+                                        minHeight: '80px'
+                                    }}
+                                    rows={3}
                                 />
                                 <textarea
+                                    name="erro-identificado"
+                                    placeholder="Erro Identificado"
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                        resize: 'vertical',
+                                        minHeight: '60px'
+                                    }}
+                                    rows={2}
+                                />
+                                <textarea
+                                    name="erro-instrucao"
                                     placeholder="Instrução"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5',
+                                        resize: 'vertical',
+                                        minHeight: '80px'
+                                    }}
                                     rows={3}
-                                    value={erroForm.instrucao}
-                                    onChange={(e) => setErroForm({...erroForm, instrucao: e.target.value})}
                                 />
                                 <button
                                     onClick={addErro}

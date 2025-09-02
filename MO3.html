@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MO3 - Control-m Batch Knowledge Database</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- 
+    🚨 OTIMIZAÇÃO CRÍTICA - TAILWIND CSS 🚨
+    
+    NÃO USAR: <script src="https://cdn.tailwindcss.com"></script>
+    
+    PROBLEMA: O CDN do Tailwind carrega TODAS as classes CSS possíveis (~50.000+ classes),
+    resultando em ~180MB de memória desperdiçada!
+    
+    SOLUÇÃO: Incluir apenas as classes CSS realmente utilizadas nesta aplicação.
+    
+    MANUTENÇÃO: Ao adicionar novas classes Tailwind no código React:
+    1. Identificar a classe no site do Tailwind (https://tailwindcss.com/docs)
+    2. Copiar o CSS correspondente
+    3. Adicionar abaixo, mantendo organizado por categoria
+    
+    IMPACTO: Redução de 180MB para ~1MB (99% de economia de memória!)
+    
+    Autor: André Filipe Silva - AndréTools
+    -->
+    
+    <style>
+        /* Reset básico */
+        *, ::before, ::after { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        
+        /* Normalizar botões e labels para mesmo comportamento */
+        button, label { 
+            border: none; 
+            margin: 0; 
+            font-family: inherit; 
+            font-size: inherit; 
+            line-height: 1.25;
+            vertical-align: baseline;
+            box-sizing: border-box;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        /* Permitir texto corrido em textareas e inputs de texto */
+        textarea, input[type="text"] {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        
+        /* Layout */
+        .min-h-screen { min-height: 100vh; }
+        .max-w-7xl { max-width: 80rem; }
+        .max-w-4xl { max-width: 56rem; }
+        .max-w-2xl { max-width: 42rem; }
+        .max-w-md { max-width: 28rem; }
+        .w-full { width: 100%; }
+        .w-8 { width: 2rem; }
+        .h-64 { height: 16rem; }
+        .h-8 { height: 2rem; }
+        .max-h-96 { max-height: 24rem; }
+        .max-h-\[90vh\] { max-height: 90vh; }
+        
+        /* Flexbox & Grid */
+        .flex { display: flex; }
+        .inline-block { display: inline-block; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .flex-col { flex-direction: column; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .space-y-1 > * + * { margin-top: 0.25rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
+        
+        /* Spacing */
+        .m-0 { margin: 0; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .mx-4 { margin-left: 1rem; margin-right: 1rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .p-1 { padding: 0.25rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .p-12 { padding: 3rem; }
+        .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+        .pl-10 { padding-left: 2.5rem; }
+        .pr-4 { padding-right: 1rem; }
+        
+        /* Positioning */
+        .fixed { position: fixed; }
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .left-3 { left: 0.75rem; }
+        .top-3 { top: 0.75rem; }
+        .z-50 { z-index: 50; }
+        
+        /* Colors - Backgrounds */
+        .bg-white { background-color: #ffffff; }
+        .bg-black { background-color: #000000; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-gray-300 { background-color: #d1d5db; }
+        .bg-gray-500 { background-color: #6b7280; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .bg-blue-500 { background-color: #3b82f6; }
+        .bg-green-50 { background-color: #f0fdf4; }
+        .bg-green-100 { background-color: #dcfce7; }
+        .bg-green-500 { background-color: #22c55e; }
+        .bg-red-100 { background-color: #fee2e2; }
+        .bg-red-500 { background-color: #ef4444; }
+        .bg-yellow-50 { background-color: #fefce8; }
+        .bg-yellow-100 { background-color: #fef3c7; }
+        .bg-purple-500 { background-color: #a855f7; }
+        .bg-purple-600 { background-color: #9333ea; }
+        .bg-violet-500 { background-color: #8b5cf6; }
+        .bg-violet-600 { background-color: #7c3aed; }
+        
+        /* Gradients */
+        .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
+        .from-slate-50 { --tw-gradient-from: #f8fafc; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(248, 250, 252, 0)); }
+        .from-blue-500 { --tw-gradient-from: #3b82f6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0)); }
+        .from-green-500 { --tw-gradient-from: #22c55e; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(34, 197, 94, 0)); }
+        .from-red-500 { --tw-gradient-from: #ef4444; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 68, 68, 0)); }
+        .from-purple-500 { --tw-gradient-from: #a855f7; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(168, 85, 247, 0)); }
+        .to-blue-50 { --tw-gradient-to: #eff6ff; }
+        .to-blue-600 { --tw-gradient-to: #2563eb; }
+        .to-green-600 { --tw-gradient-to: #16a34a; }
+        .to-red-600 { --tw-gradient-to: #dc2626; }
+        .to-purple-600 { --tw-gradient-to: #9333ea; }
+        
+        /* Opacity */
+        .bg-opacity-20 { background-color: rgba(255, 255, 255, 0.2); }
+        .bg-opacity-30 { background-color: rgba(255, 255, 255, 0.3); }
+        .bg-opacity-50 { background-color: rgba(0, 0, 0, 0.5); }
+        .opacity-90 { opacity: 0.9; }
+        
+        /* Text Colors */
+        .text-white { color: #ffffff; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-800 { color: #1f2937; }
+        .text-gray-900 { color: #111827; }
+        .text-blue-500 { color: #3b82f6; }
+        .text-blue-600 { color: #2563eb; }
+        .text-blue-700 { color: #1d4ed8; }
+        .text-blue-800 { color: #1e40af; }
+        .text-green-500 { color: #22c55e; }
+        .text-green-600 { color: #16a34a; }
+        .text-green-700 { color: #15803d; }
+        .text-green-800 { color: #166534; }
+        .text-red-500 { color: #ef4444; }
+        .text-red-600 { color: #dc2626; }
+        .text-red-800 { color: #991b1b; }
+        .text-yellow-600 { color: #ca8a04; }
+        .text-yellow-800 { color: #854d0e; }
+        .text-purple-600 { color: #9333ea; }
+        
+        /* Typography */
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .font-mono { font-family: monospace; }
+        
+        /* Borders */
+        .border { border-width: 1px; }
+        .border-2 { border-width: 2px; }
+        .border-b { border-bottom-width: 1px; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .border-yellow-200 { border-color: #fef08a; }
+        .border-dashed { border-style: dashed; }
+        
+        /* Border Radius */
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-full { border-radius: 9999px; }
+        
+        /* Shadows */
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        
+        /* Transitions */
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-colors { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        
+        /* Hover States */
+        .hover\:bg-blue-600:hover { background-color: #2563eb; }
+        .hover\:bg-green-600:hover { background-color: #16a34a; }
+        .hover\:bg-red-600:hover { background-color: #dc2626; }
+        .hover\:bg-purple-600:hover { background-color: #9333ea; }
+        .hover\:bg-violet-600:hover { background-color: #7c3aed; }
+        .hover\:bg-gray-400:hover { background-color: #9ca3af; }
+        .hover\:bg-gray-600:hover { background-color: #4b5563; }
+        .hover\:bg-opacity-30:hover { background-color: rgba(255, 255, 255, 0.3); }
+        .hover\:text-gray-700:hover { color: #374151; }
+        .hover\:text-gray-800:hover { color: #1f2937; }
+        .hover\:text-red-800:hover { color: #991b1b; }
+        
+        /* Focus States */
+        .focus\:ring-2:focus { box-shadow: 0 0 0 2px; }
+        .focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; box-shadow: 0 0 0 2px var(--tw-ring-color); }
+        .focus\:ring-green-500:focus { --tw-ring-color: #22c55e; box-shadow: 0 0 0 2px var(--tw-ring-color); }
+        .focus\:ring-red-500:focus { --tw-ring-color: #ef4444; box-shadow: 0 0 0 2px var(--tw-ring-color); }
+        .focus\:border-transparent:focus { border-color: transparent; }
+        
+        /* Other */
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-y-auto { overflow-y: auto; }
+        .overflow-auto { overflow: auto; }
+        .cursor-pointer { cursor: pointer; }
+        .list-decimal { list-style-type: decimal; }
+        .list-inside { list-style-position: inside; }
+        .hidden { display: none; }
+        .disabled\:bg-gray-300:disabled { background-color: #d1d5db; }
+        
+        /* Drop Zone */
+        .border-dashed { border-style: dashed; }
+        .drag-over { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.1); }
+        
+        /* Animations */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        /* Responsive */
+        @media (min-width: 768px) {
+            .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Ícones simples em SVG
+        const Plus = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const Search = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        );
+
+        const Edit = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        );
+
+        const Trash = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+            </svg>
+        );
+
+        const Zap = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"></polygon>
+            </svg>
+        );
+
+        const Settings = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4,15a1.65,1.65,0,0,0,.33,1.82l.06.06a2,2,0,0,1,0,2.83,2,2,0,0,1-2.83,0l-.06-.06a1.65,1.65,0,0,0-1.82-.33,1.65,1.65,0,0,0-1,1.51V21a2,2,0,0,1-2,2,2,2,0,0,1-2-2v-.09A1.65,1.65,0,0,0,9,19.4a1.65,1.65,0,0,0-1.82.33l-.06.06a2,2,0,0,1-2.83,0,2,2,0,0,1,0-2.83l.06-.06a1.65,1.65,0,0,0,.33-1.82,1.65,1.65,0,0,0-1.51-1H3a2,2,0,0,1-2-2,2,2,0,0,1,2-2h.09A1.65,1.65,0,0,0,4.6,9a1.65,1.65,0,0,0-.33-1.82L4.21,7.1a2,2,0,0,1,0-2.83,2,2,0,0,1,2.83,0L7.1,4.33a1.65,1.65,0,0,0,1.82.33,1.65,1.65,0,0,0,1-1.51V3a2,2,0,0,1,2-2,2,2,0,0,1,2,2v.09a1.65,1.65,0,0,0,1,1.51,1.65,1.65,0,0,0,1.82-.33l.06-.06a2,2,0,0,1,2.83,0,2,2,0,0,1,0,2.83l-.06.06a1.65,1.65,0,0,0-.33,1.82,1.65,1.65,0,0,0,1.51,1H21a2,2,0,0,1,2,2,2,2,0,0,1-2,2h-.09A1.65,1.65,0,0,0,19.4,15Z"></path>
+            </svg>
+        );
+
+        const AlertCircle = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        );
+
+        const FileSearch = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <circle cx="11.5" cy="14.5" r="2.5"></circle>
+                <path d="M13.25 16.25 15 18"></path>
+            </svg>
+        );
+
+        const Database = () => (
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+        );
+
+        const MagnifyingGlass = () => (
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        );
+
+        const Calendar = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        );
+
+        const MO3Dashboard = () => {
+            // Estado para gerenciar dados dos três módulos com persistência
+            const [appData, setAppData] = useState(() => {
+                const saved = localStorage.getItem('mo3-app-data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Migração de dados antigos - adicionar subAplicacao se não existir
+                    return parsed.map(item => ({
+                        ...item,
+                        aplicacao: item.input || item.aplicacao || '',
+                        subAplicacao: item.subAplicacao || '',
+                        catalogoAplicacional: item.catalogoAplicacional || '',
+                        // Remover o campo input antigo após migração
+                        input: undefined
+                    }));
+                }
+                return [];
+            });
+            const [cadeiaData, setCadeiaData] = useState(() => {
+                const saved = localStorage.getItem('mo3-cadeia-data');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [erroData, setErroData] = useState(() => {
+                const saved = localStorage.getItem('mo3-erro-data');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [escalasData, setEscalasData] = useState(() => {
+                const saved = localStorage.getItem('mo3-escalas-data');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [lastEscalasUpdate, setLastEscalasUpdate] = useState(() => {
+                return localStorage.getItem('mo3-escalas-timestamp') || null;
+            });
+
+            // Salvar dados automaticamente
+            React.useEffect(() => {
+                localStorage.setItem('mo3-app-data', JSON.stringify(appData));
+            }, [appData]);
+            
+            React.useEffect(() => {
+                localStorage.setItem('mo3-cadeia-data', JSON.stringify(cadeiaData));
+            }, [cadeiaData]);
+            
+            React.useEffect(() => {
+                localStorage.setItem('mo3-erro-data', JSON.stringify(erroData));
+            }, [erroData]);
+            
+            React.useEffect(() => {
+                localStorage.setItem('mo3-escalas-data', JSON.stringify(escalasData));
+            }, [escalasData]);
+            
+            React.useEffect(() => {
+                if (lastEscalasUpdate) {
+                    localStorage.setItem('mo3-escalas-timestamp', lastEscalasUpdate);
+                }
+            }, [lastEscalasUpdate]);
+
+            // Verificar banner quando modal abre
+            React.useEffect(() => {
+                if (escalasModal && checkUpdateBanner()) {
+                    setShowUpdateBanner(true);
+                }
+            }, [escalasModal, lastEscalasUpdate]);
+            
+            // Estado para modais e formulários
+            const [activeModal, setActiveModal] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [importModal, setImportModal] = useState(false);
+            const [importData, setImportData] = useState(null);
+            const [mappingConfig, setMappingConfig] = useState({});
+            const [importStep, setImportStep] = useState(1); // 1: Upload, 2: Mapping, 3: Preview
+            const [logAnalysisModal, setLogAnalysisModal] = useState(false);
+            const [logContent, setLogContent] = useState('');
+            const [logAnalysisResults, setLogAnalysisResults] = useState(null);
+            const [escalasModal, setEscalasModal] = useState(false);
+            const [escalasSearchTerm, setEscalasSearchTerm] = useState('');
+            const [escalasInfoCard, setEscalasInfoCard] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+
+            // Função para buscar informações das escalas por ITSMAssetID
+            // 🚨 OTIMIZAÇÃO CRÍTICA: Detecta conflitos de CA duplicados e retorna informação sobre duplicações
+            const findEscalaInfo = (catalogoAplicacional) => {
+                if (!catalogoAplicacional || !escalasData || escalasData.length === 0) return null;
+                
+                
+                // Buscar todas as escalas que correspondem ao catálogo aplicacional
+                // ⚠️ CORREÇÃO: Usar .trim() para ignorar espaços em branco
+                const matchingEscalas = escalasData.filter(escala => 
+                    escala.ITSMAssetID && escala.ITSMAssetID.toString().trim() === catalogoAplicacional.toString().trim()
+                );
+                
+                console.log('🔎 Buscando CA:', catalogoAplicacional, '- Encontradas', matchingEscalas.length, 'escalas');
+                if (matchingEscalas.length > 1) {
+                    console.log('  Escalas encontradas:');
+                    matchingEscalas.forEach((escala, index) => {
+                        console.log(`    ${index + 1}. Inicio: ${escala.Inicio}, ITSMAssetID: ${escala.ITSMAssetID}, PoolSuporte: ${escala.PoolSuporte}`);
+                    });
+                }
+                
+                if (matchingEscalas.length === 0) return null;
+                
+                // Se há apenas uma correspondência, retornar diretamente
+                if (matchingEscalas.length === 1) {
+                    return {
+                        ...matchingEscalas[0],
+                        hasDuplicates: false,
+                        allEscalas: [matchingEscalas[0]]
+                    };
+                }
+                
+                // Se há múltiplas correspondências (duplicação detectada)
+                // ⚠️ BUG CONHECIDO: Datas podem vir em diferentes formatos do XML
+                // Ordenar por data INICIO em ordem decrescente (mais recente primeiro)
+                const sortedEscalas = matchingEscalas.sort((a, b) => {
+                    // Função auxiliar para parsing robusto de datas
+                    // ⚠️ BUG CONHECIDO: new Date() interpreta DD/MM como MM/DD (formato americano)
+                    const parseDate = (dateStr) => {
+                        if (!dateStr) return new Date(0);
+                        
+                        // Remover possível parte da hora se existir
+                        const datePart = dateStr.split(' ')[0];
+                        
+                        // SEMPRE usar parsing manual para garantir formato português DD/MM/YYYY
+                        const parts = datePart.split(/[\/\-.]/);
+                        if (parts.length >= 3) {
+                            const day = parseInt(parts[0]);
+                            const month = parseInt(parts[1]) - 1; // Mês é 0-indexed
+                            let year = parseInt(parts[2]);
+                            
+                            // Converter anos de 2 dígitos para 4 dígitos
+                            if (year < 100) {
+                                year = year < 50 ? 2000 + year : 1900 + year;
+                            }
+                            
+                            // Validar se os valores fazem sentido
+                            // Aceitar anos desde 1990 (mais flexível para escalas antigas) até 2050
+                            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1990 && year <= 2050) {
+                                return new Date(year, month, day);
+                            }
+                        }
+                        
+                        // Se falhou o parsing manual, usar data mínima
+                        console.warn('⚠️ Data inválida:', dateStr);
+                        return new Date(0);
+                    };
+                    
+                    const dateA = parseDate(a.Inicio);
+                    const dateB = parseDate(b.Inicio);
+                    
+                    console.log('🔍 Conflito detectado para CA:', a.ITSMAssetID);
+                    console.log('  Data A (original):', a.Inicio, '→ Parsed:', dateA.toLocaleDateString('pt-PT'), 'Timestamp:', dateA.getTime(), 'PoolSuporte:', a.PoolSuporte);
+                    console.log('  Data B (original):', b.Inicio, '→ Parsed:', dateB.toLocaleDateString('pt-PT'), 'Timestamp:', dateB.getTime(), 'PoolSuporte:', b.PoolSuporte);
+                    
+                    const comparison = dateB - dateA;
+                    console.log('  Comparação (dateB - dateA):', comparison, comparison > 0 ? '(B mais recente - será selecionada)' : comparison < 0 ? '(A mais recente - será selecionada)' : '(Datas iguais)');
+                    
+                    // Se as datas são iguais, ordenar por PoolSuporte para ter comportamento consistente
+                    if (comparison === 0) {
+                        console.log('  Datas iguais - ordenando por PoolSuporte');
+                        return a.PoolSuporte && b.PoolSuporte ? a.PoolSuporte.localeCompare(b.PoolSuporte) : 0;
+                    }
+                    
+                    return comparison; // Ordem decrescente (mais recente primeiro)
+                });
+                
+                // Função para verificar se duas escalas se sobrepõem temporalmente
+                const checkTemporalOverlap = (escala1, escala2) => {
+                    const parseDate = (dateStr) => {
+                        if (!dateStr) return null;
+                        const datePart = dateStr.split(' ')[0];
+                        const parts = datePart.split(/[\/\-.]/);
+                        if (parts.length >= 3) {
+                            const day = parseInt(parts[0]);
+                            const month = parseInt(parts[1]) - 1;
+                            let year = parseInt(parts[2]);
+                            if (year < 100) {
+                                year = year < 50 ? 2000 + year : 1900 + year;
+                            }
+                            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1990 && year <= 2050) {
+                                return new Date(year, month, day);
+                            }
+                        }
+                        return null;
+                    };
+
+                    const inicio1 = parseDate(escala1.Inicio);
+                    const fim1 = parseDate(escala1.Fim);
+                    const inicio2 = parseDate(escala2.Inicio);
+                    const fim2 = parseDate(escala2.Fim);
+
+                    // Se não conseguir parsear as datas, assumir que não há sobreposição
+                    if (!inicio1 || !inicio2) return false;
+
+                    // Se uma escala não tem fim definido, assumir que ainda está ativa (data atual)
+                    const agora = new Date();
+                    const fim1Final = fim1 || agora;
+                    const fim2Final = fim2 || agora;
+
+                    // Verificar se há sobreposição: escala1.inicio < escala2.fim && escala2.inicio < escala1.fim
+                    // MUDANÇA: usar < em vez de <= para evitar detectar "toque" como sobreposição
+                    const overlap = inicio1 < fim2Final && inicio2 < fim1Final;
+                    
+                    console.log(`   Verificação sobreposição: ${escala1.Inicio}-${escala1.Fim || 'atual'} vs ${escala2.Inicio}-${escala2.Fim || 'atual'} = ${overlap ? 'SIM' : 'NÃO'}`);
+                    return overlap;
+                };
+
+                // NOVA LÓGICA: Agrupar por PoolSuporte e comparar apenas as mais recentes
+                console.log('📊 Agrupando escalas por PoolSuporte...');
+                
+                // Agrupar escalas por PoolSuporte
+                const groupedByPool = {};
+                sortedEscalas.forEach((escala, index) => {
+                    const pool = (escala.PoolSuporte || '').toString().trim();
+                    if (!groupedByPool[pool]) {
+                        groupedByPool[pool] = [];
+                    }
+                    groupedByPool[pool].push(escala);
+                    console.log(`   Escala ${index + 1}: ${pool} (${escala.Inicio})`);
+                });
+                
+                // Pegar apenas a escala mais recente de cada PoolSuporte
+                const latestByPool = {};
+                const activeEscalas = [];
+                
+                Object.keys(groupedByPool).forEach(pool => {
+                    const poolEscalas = groupedByPool[pool];
+                    // Já estão ordenadas por data, então a primeira é a mais recente
+                    const latest = poolEscalas[0];
+                    latestByPool[pool] = latest;
+                    activeEscalas.push(latest);
+                    console.log(`   ✅ Pool "${pool}": Mais recente = ${latest.Inicio}`);
+                });
+                
+                // Verificar se há conflito entre PoolSuporte diferentes (apenas escalas ativas)
+                let hasRealDuplication = false;
+                let duplicationReason = '';
+                let duplicatedPools = [];
+                
+                if (activeEscalas.length > 1) {
+                    hasRealDuplication = true;
+                    duplicatedPools = Object.keys(latestByPool);
+                    duplicationReason = `Múltiplos PoolSuporte ativos: ${duplicatedPools.join(' vs ')}`;
+                    console.log(`   🚨 CONFLITO: ${duplicatedPools.length} PoolSuporte diferentes com escalas ativas`);
+                } else {
+                    console.log(`   ✅ Apenas um PoolSuporte ativo: ${Object.keys(latestByPool)[0]}`);
+                }
+
+                const selected = sortedEscalas[0];
+                console.log('📊 Escalas ordenadas por data INICIO (mais recente primeiro):');
+                sortedEscalas.forEach((escala, index) => {
+                    console.log(`   ${index + 1}. ${escala.Inicio}-${escala.Fim || 'atual'} (PoolSuporte: ${escala.PoolSuporte})`);
+                });
+
+                if (hasRealDuplication) {
+                    console.log('⚠️ DUPLICAÇÃO REAL DETECTADA para CA:', catalogoAplicacional);
+                    console.log('🔍 Motivo:', duplicationReason);
+                    console.log('📋 Escalas ativas (mais recentes por PoolSuporte):');
+                    activeEscalas.forEach((escala, index) => {
+                        console.log(`   ${index + 1}. ${escala.Inicio} (PoolSuporte: ${escala.PoolSuporte})`);
+                    });
+                    console.log('✅ Selecionada (primeira ativa):', selected.Inicio, 'PoolSuporte:', selected.PoolSuporte);
+                    
+                    return {
+                        ...selected,
+                        hasDuplicates: true,
+                        allEscalas: activeEscalas  // Apenas escalas ativas (mais recentes por pool)
+                    };
+                } else {
+                    console.log('✅ SEM DUPLICAÇÃO para CA:', catalogoAplicacional);
+                    if (sortedEscalas.length > 1) {
+                        console.log('🔄 Mesmo PoolSuporte, escalas sequenciais (substituições naturais)');
+                    }
+                    console.log('✅ Selecionada (mais recente):', selected.Inicio, 'PoolSuporte:', selected.PoolSuporte);
+                    
+                    return {
+                        ...selected,
+                        hasDuplicates: false,
+                        allEscalas: [selected]  // Apenas a escala ativa
+                    };
+                }
+            };
+
+            // Função para mostrar card com informações da escala
+            const showEscalaInfo = (catalogoAplicacional) => {
+                const escalaInfo = findEscalaInfo(catalogoAplicacional);
+                if (escalaInfo) {
+                    setEscalasInfoCard({
+                        catalogoAplicacional,
+                        ...escalaInfo
+                    });
+                }
+            };
+            const [processingMessage, setProcessingMessage] = useState('');
+            const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+            const [escalasFilters, setEscalasFilters] = useState({});
+            const [escalasSort, setEscalasSort] = useState({ column: null, direction: 'asc' });
+
+            // Formulários para cada módulo
+            const [appForm, setAppForm] = useState({ aplicacao: '', subAplicacao: '', catalogoAplicacional: '', standby: true, acoes: '' });
+            const [editingAppId, setEditingAppId] = useState(null);
+            const [cadeiaForm, setCadeiaForm] = useState({ input: '', standby: true, acoes: '' });
+            const [erroForm, setErroForm] = useState({ input: '', erroIdentificado: '', instrucao: '' });
+
+            // Funções para adicionar/editar dados
+            const addApp = () => {
+                // Ler valores dos refs se existirem, caso contrário usar state
+                const formData = {
+                    aplicacao: appAplicacaoRef.current?.value || appForm.aplicacao,
+                    subAplicacao: appSubAplicacaoRef.current?.value || appForm.subAplicacao,
+                    catalogoAplicacional: appCatalogoRef.current?.value || appForm.catalogoAplicacional,
+                    standby: appStandbyRef.current?.checked !== undefined ? appStandbyRef.current.checked : appForm.standby,
+                    acoes: appAcoesRef.current?.value || appForm.acoes
+                };
+
+                if (formData.aplicacao.trim()) {
+                    if (editingAppId) {
+                        // Editar item existente
+                        setAppData(appData.map(item => 
+                            item.id === editingAppId ? { ...formData, id: editingAppId } : item
+                        ));
+                        setEditingAppId(null);
+                    } else {
+                        // Adicionar novo item
+                        const newItem = { ...formData, id: Date.now() };
+                        setAppData([...appData, newItem]);
+                    }
+                    setAppForm({ aplicacao: '', subAplicacao: '', catalogoAplicacional: '', standby: true, acoes: '' });
+                    setActiveModal(null);
+                }
+            };
+
+            // Função para iniciar edição de um item App
+            const editApp = (item) => {
+                setAppForm({
+                    aplicacao: item.aplicacao || '',
+                    subAplicacao: item.subAplicacao || '',
+                    catalogoAplicacional: item.catalogoAplicacional || '',
+                    standby: item.standby !== undefined ? item.standby : true,
+                    acoes: item.acoes || ''
+                });
+                setEditingAppId(item.id);
+                setActiveModal('app');
+            };
+
+            // Refs para inputs não controlados como fallback
+            const appAplicacaoRef = React.useRef();
+            const appSubAplicacaoRef = React.useRef();
+            const appCatalogoRef = React.useRef();
+            const appStandbyRef = React.useRef();
+            const appAcoesRef = React.useRef();
+
+            // Handlers estáveis para o formulário App
+            const handleAppAplicacaoChange = (e) => {
+                setAppForm(prev => ({...prev, aplicacao: e.target.value}));
+            };
+            const handleAppSubAplicacaoChange = (e) => {
+                setAppForm(prev => ({...prev, subAplicacao: e.target.value}));
+            };
+            const handleAppCatalogoChange = (e) => {
+                setAppForm(prev => ({...prev, catalogoAplicacional: e.target.value}));
+            };
+            const handleAppStandbyChange = (e) => {
+                setAppForm(prev => ({...prev, standby: e.target.checked}));
+            };
+            const handleAppAcoesChange = (e) => {
+                setAppForm(prev => ({...prev, acoes: e.target.value}));
+            };
+
+            // Preencher refs quando entra em modo de edição
+            React.useEffect(() => {
+                if (editingAppId && appAplicacaoRef.current) {
+                    appAplicacaoRef.current.value = appForm.aplicacao || '';
+                    appSubAplicacaoRef.current.value = appForm.subAplicacao || '';
+                    appCatalogoRef.current.value = appForm.catalogoAplicacional || '';
+                    appStandbyRef.current.checked = appForm.standby;
+                    appAcoesRef.current.value = appForm.acoes || '';
+                }
+            }, [editingAppId, appForm]);
+
+            const addCadeia = () => {
+                if (cadeiaForm.input.trim()) {
+                    const newItem = { ...cadeiaForm, id: Date.now() };
+                    setCadeiaData([...cadeiaData, newItem]);
+                    setCadeiaForm({ input: '', standby: true, acoes: '' });
+                    setActiveModal(null);
+                }
+            };
+
+            const addErro = () => {
+                if (erroForm.input.trim()) {
+                    const newItem = { ...erroForm, id: Date.now() };
+                    setErroData([...erroData, newItem]);
+                    setErroForm({ input: '', erroIdentificado: '', instrucao: '' });
+                    setActiveModal(null);
+                }
+            };
+
+            // Função para analisar logs
+            const analyzeLog = () => {
+                if (!logContent.trim()) {
+                    alert('Por favor, cole o conteúdo do log antes de procurar erros.');
+                    return;
+                }
+
+                const results = [];
+                const logLines = logContent.split('\n');
+
+                // Procurar cada código de erro no log
+                erroData.forEach(erro => {
+                    const errorCode = erro.input;
+                    if (!errorCode) return;
+
+                    // Encontrar todas as ocorrências do código de erro no log
+                    const occurrences = [];
+                    logLines.forEach((line, lineIndex) => {
+                        if (line.toLowerCase().includes(errorCode.toLowerCase())) {
+                            occurrences.push({
+                                lineNumber: lineIndex + 1,
+                                lineContent: line.trim(),
+                                context: getLogContext(logLines, lineIndex)
+                            });
+                        }
+                    });
+
+                    if (occurrences.length > 0) {
+                        results.push({
+                            errorCode: errorCode,
+                            errorDescription: erro.erroIdentificado,
+                            instruction: erro.instrucao,
+                            occurrences: occurrences
+                        });
+                    }
+                });
+
+                setLogAnalysisResults(results);
+            };
+
+            // Função auxiliar para obter contexto do erro no log
+            const getLogContext = (lines, index) => {
+                const contextLines = 2; // Número de linhas antes e depois para contexto
+                const start = Math.max(0, index - contextLines);
+                const end = Math.min(lines.length - 1, index + contextLines);
+                
+                return lines.slice(start, end + 1).map((line, i) => ({
+                    lineNumber: start + i + 1,
+                    content: line,
+                    isErrorLine: start + i === index
+                }));
+            };
+
+            // Função para limpar todos os dados
+            const clearAllData = () => {
+                if (confirm('Tens a certeza que queres limpar todos os dados? Esta ação não pode ser desfeita!')) {
+                    setAppData([]);
+                    setCadeiaData([]);
+                    setErroData([]);
+                    localStorage.removeItem('mo3-app-data');
+                    localStorage.removeItem('mo3-cadeia-data');
+                    localStorage.removeItem('mo3-erro-data');
+                }
+            };
+
+            // Função para limpar dados das escalas
+            const clearEscalasData = () => {
+                if (confirm('Tens a certeza que queres limpar todos os dados das escalas? Esta ação não pode ser desfeita!')) {
+                    setEscalasData([]);
+                    setLastEscalasUpdate(null);
+                    localStorage.removeItem('mo3-escalas-data');
+                    localStorage.removeItem('mo3-escalas-timestamp');
+                }
+            };
+
+            // Função para verificar se precisa mostrar banner de atualização
+            const checkUpdateBanner = () => {
+                if (!lastEscalasUpdate) return false;
+                
+                const now = new Date();
+                const lastUpdate = new Date(lastEscalasUpdate);
+                const today1830 = new Date();
+                today1830.setHours(18, 30, 0, 0);
+                
+                // Se é depois das 18:30 e a última atualização foi antes das 18:30 de hoje
+                if (now > today1830 && lastUpdate < today1830) {
+                    return true;
+                }
+                
+                return false;
+            };
+
+            // Função para formatar contactos
+            const formatContact = (contactStr) => {
+                if (!contactStr) return '';
+                
+                // Regex para extrair telefone e email: (telefone - - email)
+                const match = contactStr.match(/\((\d+)\s*-\s*-\s*([^)]+)\)/);
+                if (match) {
+                    const phone = match[1];
+                    const email = match[2];
+                    return (
+                        <span>
+                            {phone} - <a href={`mailto:${email}`} className="text-blue-600 hover:text-blue-800">{email}</a>
+                        </span>
+                    );
+                }
+                
+                return contactStr;
+            };
+
+            // Função para processar arquivo ZIP/XML das escalas
+            const processEscalasFile = async (file) => {
+                if (!file) return;
+
+                // Validar tamanho (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ficheiro muito grande! Tamanho máximo: 5MB');
+                    return;
+                }
+
+                setIsProcessing(true);
+                setProcessingMessage('A processar ficheiro...');
+
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Duração mínima
+
+                    let xmlContent = '';
+
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                        setProcessingMessage('A extrair ficheiro ZIP...');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                        const zip = new JSZip();
+                        const zipContent = await zip.loadAsync(file);
+                        
+                        const xmlFile = zipContent.file('EscalasSuporte.xml');
+                        if (!xmlFile) {
+                            throw new Error('EscalasSuporte.xml não encontrado no ZIP');
+                        }
+                        
+                        xmlContent = await xmlFile.async('string');
+                    } else if (file.name.toLowerCase().endsWith('.xml')) {
+                        xmlContent = await file.text();
+                    } else {
+                        throw new Error('Formato de ficheiro não suportado. Use .zip ou .xml');
+                    }
+
+                    setProcessingMessage('A carregar escalas...');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    // Parser XML usando DOMParser
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+                    
+                    // Verificar se há erros no parsing
+                    const parseError = xmlDoc.querySelector('parsererror');
+                    if (parseError) {
+                        throw new Error('Formato XML inválido');
+                    }
+
+                    const rows = xmlDoc.querySelectorAll('Row');
+                    if (rows.length === 0) {
+                        throw new Error('Nenhuma escala encontrada no ficheiro');
+                    }
+
+                    const escalas = [];
+                    const expectedColumns = ['Direcao', 'Equipa', 'Diretor', 'Coordenador', 'Escala', 'PoolSuporte', 'ITSMAssetID', 'CodigoAplicacao', 'Inicio', 'Fim', 'Contacto1', 'Contacto2', 'Contacto3', 'Observacoes'];
+                    
+                    // Primeira linha são os headers
+                    let headers = [];
+                    const firstRow = rows[0];
+                    if (firstRow) {
+                        const headerCells = firstRow.querySelectorAll('Cell Data');
+                        headers = Array.from(headerCells).map(cell => cell.textContent.trim());
+                    }
+
+                    // Verificar se temos todas as colunas esperadas
+                    const missingColumns = expectedColumns.filter(col => !headers.includes(col));
+                    if (missingColumns.length > 0) {
+                        console.warn('Colunas em falta:', missingColumns);
+                    }
+
+                    // Processar dados (começar da linha 1, pular header)
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        const cells = row.querySelectorAll('Cell Data');
+                        
+                        if (cells.length === 0) continue; // Ignorar linhas vazias
+                        
+                        const rowData = {};
+                        cells.forEach((cell, index) => {
+                            if (headers[index]) {
+                                rowData[headers[index]] = cell.textContent.trim();
+                            }
+                        });
+
+                        // Verificar se tem dados mínimos
+                        if (rowData.Direcao || rowData.Equipa || rowData.Escala) {
+                            escalas.push({
+                                id: Date.now() + i,
+                                ...rowData
+                            });
+                        }
+                    }
+
+                    if (escalas.length === 0) {
+                        throw new Error('Nenhuma escala válida encontrada no ficheiro');
+                    }
+
+                    // Limpar dados antigos e carregar novos
+                    setEscalasData(escalas);
+                    setLastEscalasUpdate(new Date().toISOString());
+                    setShowUpdateBanner(false);
+
+                    setProcessingMessage(`Escalas atualizadas com sucesso! ✅`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    alert(`${escalas.length} escalas carregadas com sucesso!`);
+
+                } catch (error) {
+                    console.error('Erro ao processar escalas:', error);
+                    alert(`Erro ao processar ficheiro: ${error.message}`);
+                } finally {
+                    setIsProcessing(false);
+                    setProcessingMessage('');
+                }
+            };
+
+            // Funções para exportar/importar dados
+            const exportData = () => {
+                const allData = {
+                    app: appData,
+                    cadeia: cadeiaData,
+                    erro: erroData,
+                    exportDate: new Date().toISOString()
+                };
+                const dataStr = JSON.stringify(allData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'mo3-backup.json';
+                link.click();
+            };
+
+            const importJsonData = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.app) {
+                                // Migração de dados antigos - adicionar subAplicacao se não existir
+                                const migratedAppData = data.app.map(item => ({
+                                    ...item,
+                                    aplicacao: item.input || item.aplicacao || '',
+                                    subAplicacao: item.subAplicacao || '',
+                                    catalogoAplicacional: item.catalogoAplicacional || '',
+                                    // Remover o campo input antigo após migração
+                                    input: undefined
+                                }));
+                                setAppData(migratedAppData);
+                            }
+                            if (data.cadeia) setCadeiaData(data.cadeia);
+                            if (data.erro) setErroData(data.erro);
+                            alert('Dados importados com sucesso!');
+                        } catch (error) {
+                            alert('Erro ao importar dados!');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+
+            // Função para importação em massa
+            const handleMassImport = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                
+                if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            
+                            const parsedData = {};
+                            workbook.SheetNames.forEach(sheetName => {
+                                const worksheet = workbook.Sheets[sheetName];
+                                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                                
+                                if (jsonData.length > 0) {
+                                    parsedData[sheetName] = {
+                                        columns: Object.keys(jsonData[0]),
+                                        data: jsonData
+                                    };
+                                }
+                            });
+                            
+                            setImportData(parsedData);
+                            setImportStep(2);
+                        } catch (error) {
+                            alert('Erro ao ler arquivo Excel: ' + error.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    alert('Por enquanto, apenas arquivos Excel são suportados. SQLite virá em breve!');
+                }
+            };
+
+            // Função para aplicar o mapeamento
+            const applyMapping = () => {
+                if (!mappingConfig.selectedTable || !mappingConfig.targetModule) {
+                    alert('Por favor, preenche todos os campos obrigatórios!');
+                    return;
+                }
+
+                // Validação específica para cada módulo
+                if (mappingConfig.targetModule === 'app' && !mappingConfig.aplicacaoColumn) {
+                    alert('Por favor, seleciona a coluna para "Aplicação"!');
+                    return;
+                }
+                if ((mappingConfig.targetModule === 'cadeia' || mappingConfig.targetModule === 'erro') && !mappingConfig.inputColumn) {
+                    alert('Por favor, seleciona a coluna para "Input"!');
+                    return;
+                }
+
+                const sourceData = importData[mappingConfig.selectedTable].data;
+                const newItems = [];
+
+                sourceData.forEach((row, index) => {
+                    const newItem = {
+                        id: Date.now() + index
+                    };
+
+                    if (mappingConfig.targetModule === 'app') {
+                        newItem.aplicacao = row[mappingConfig.aplicacaoColumn] || '';
+                        newItem.subAplicacao = mappingConfig.subAplicacaoColumn ? row[mappingConfig.subAplicacaoColumn] || '' : '';
+                        newItem.catalogoAplicacional = mappingConfig.catalogoAplicacionalColumn ? row[mappingConfig.catalogoAplicacionalColumn] || '' : '';
+                        
+                        // Lógica específica para interpretar o campo standby
+                        if (mappingConfig.standbyColumn) {
+                            const standbyValue = row[mappingConfig.standbyColumn];
+                            const standbyStr = String(standbyValue).toLowerCase().trim();
+                            const containsSemStandby = standbyStr.includes('sem standby') || standbyStr.includes('semstandby');
+                            newItem.standby = !containsSemStandby;
+                        } else {
+                            // ⚠️ CORREÇÃO: Campo vazio = sem standby (false)
+                            newItem.standby = false;
+                        }
+                        
+                        newItem.acoes = mappingConfig.acoesColumn ? row[mappingConfig.acoesColumn] || '' : '';
+                    } else if (mappingConfig.targetModule === 'cadeia') {
+                        newItem.input = row[mappingConfig.inputColumn] || '';
+                        
+                        if (mappingConfig.standbyColumn) {
+                            const standbyValue = row[mappingConfig.standbyColumn];
+                            const standbyStr = String(standbyValue).toLowerCase().trim();
+                            const containsSemStandby = standbyStr.includes('sem standby') || standbyStr.includes('semstandby');
+                            newItem.standby = !containsSemStandby;
+                        } else {
+                            // ⚠️ CORREÇÃO: Campo vazio = sem standby (false) 
+                            newItem.standby = false;
+                        }
+                        
+                        newItem.acoes = mappingConfig.acoesColumn ? row[mappingConfig.acoesColumn] || '' : '';
+                    } else if (mappingConfig.targetModule === 'erro') {
+                        newItem.input = row[mappingConfig.inputColumn] || '';
+                        newItem.erroIdentificado = mappingConfig.erroColumn ? row[mappingConfig.erroColumn] || '' : '';
+                        newItem.instrucao = mappingConfig.instrucaoColumn ? row[mappingConfig.instrucaoColumn] || '' : '';
+                    }
+
+                    // Adicionar apenas se tiver conteúdo relevante
+                    const hasContent = mappingConfig.targetModule === 'app' 
+                        ? newItem.aplicacao 
+                        : newItem.input;
+                    
+                    if (hasContent) {
+                        newItems.push(newItem);
+                    }
+                });
+
+                // Adicionar aos dados existentes
+                if (mappingConfig.targetModule === 'app') {
+                    setAppData([...appData, ...newItems]);
+                } else if (mappingConfig.targetModule === 'cadeia') {
+                    setCadeiaData([...cadeiaData, ...newItems]);
+                } else if (mappingConfig.targetModule === 'erro') {
+                    setErroData([...erroData, ...newItems]);
+                }
+
+                alert(`${newItems.length} registos importados com sucesso!`);
+                
+                // Resetar modal
+                setImportModal(false);
+                setImportStep(1);
+                setImportData(null);
+                setMappingConfig({});
+            };
+
+            const removeItem = (id, type) => {
+                const typeNames = {
+                    'app': 'aplicação',
+                    'cadeia': 'cadeia',
+                    'erro': 'erro'
+                };
+                
+                if (confirm(`Tem certeza que quer remover esta ${typeNames[type]}?`)) {
+                    if (type === 'app') setAppData(appData.filter(item => item.id !== id));
+                    if (type === 'cadeia') setCadeiaData(cadeiaData.filter(item => item.id !== id));
+                    if (type === 'erro') setErroData(erroData.filter(item => item.id !== id));
+                }
+            };
+
+            // Modal Component
+            const Modal = ({ title, children, onClose, size = 'md' }) => {
+                const sizeClasses = {
+                    md: 'max-w-md',
+                    lg: 'max-w-2xl',
+                    xl: 'max-w-6xl'
+                };
+
+                return (
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                        onClick={onClose}
+                    >
+                        <div 
+                            className={`bg-white rounded-xl p-6 w-full ${sizeClasses[size]} mx-4 shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-auto`}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+                                <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+                            </div>
+                            {children}
+                        </div>
+                    </div>
+                );
+            };
+
+            // Card Component para cada módulo
+            const ModuleCard = ({ title, icon: Icon, color, data, onAdd, extraButton }) => (
+                <div className={`bg-gradient-to-br ${color} rounded-xl shadow-lg p-6 text-white`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <Icon />
+                            <h2 className="text-xl font-bold">{title}</h2>
+                        </div>
+                        <button
+                            onClick={onAdd}
+                            className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-all"
+                        >
+                            <Plus />
+                        </button>
+                    </div>
+                    <div className="text-2xl font-bold mb-2">{data.length}</div>
+                    <div className={`text-sm opacity-90 ${extraButton ? 'mb-3' : ''}`}>registos ativos</div>
+                    {extraButton && extraButton}
+                </div>
+            );
+
+            // Componente de Estado Vazio para Pesquisa
+            const EmptySearchState = () => (
+                <div className="bg-gray-50 rounded-xl p-12 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <MagnifyingGlass />
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                Pesquisa Otimizada Ativa
+                            </h3>
+                            <p className="text-gray-600">
+                                Digite pelo menos <strong>3 caracteres</strong> para começar a pesquisar
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Componente de tabela para escalas
+            const EscalasTable = ({ data, searchTerm, filters, setFilters, sort, setSort }) => {
+                const [expandedCell, setExpandedCell] = useState(null);
+                
+                // Filtrar dados por pesquisa
+                let filteredData = data.filter(item => 
+                    Object.values(item).some(value => 
+                        value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                );
+
+                // Aplicar filtros por coluna
+                Object.keys(filters).forEach(column => {
+                    if (filters[column] && filters[column] !== 'all') {
+                        filteredData = filteredData.filter(item => 
+                            item[column] === filters[column]
+                        );
+                    }
+                });
+
+                // Aplicar ordenação
+                if (sort.column) {
+                    filteredData.sort((a, b) => {
+                        const aVal = a[sort.column] || '';
+                        const bVal = b[sort.column] || '';
+                        const result = aVal.toString().localeCompare(bVal.toString());
+                        return sort.direction === 'asc' ? result : -result;
+                    });
+                }
+
+                const columns = ['Direcao', 'Equipa', 'Diretor', 'Coordenador', 'Escala', 'PoolSuporte', 'ITSMAssetID', 'CodigoAplicacao', 'Inicio', 'Fim', 'Contacto1', 'Contacto2', 'Contacto3', 'Observacoes'];
+                
+                // Obter valores únicos para filtros
+                const getUniqueValues = (column) => {
+                    const values = [...new Set(data.map(item => item[column]).filter(Boolean))];
+                    return values.sort();
+                };
+
+                const handleSort = (column) => {
+                    if (sort.column === column) {
+                        setSort({ 
+                            column, 
+                            direction: sort.direction === 'asc' ? 'desc' : 'asc' 
+                        });
+                    } else {
+                        setSort({ column, direction: 'asc' });
+                    }
+                };
+
+                const formatCellContent = (value, column) => {
+                    if (!value) return '';
+                    
+                    // Formatação especial para contactos
+                    if (column.startsWith('Contacto')) {
+                        const match = value.match(/\((\d+)\s*-\s*-\s*([^)]+)\)/);
+                        if (match) {
+                            const phone = match[1];
+                            const email = match[2];
+                            return (
+                                <span>
+                                    {phone} - <a href={`mailto:${email}`} className="text-blue-600 hover:text-blue-800">{email}</a>
+                                </span>
+                            );
+                        }
+                    }
+                    
+                    // Formatação para datas
+                    if (column === 'Inicio' || column === 'Fim') {
+                        if (value.includes(' ')) {
+                            const [datePart] = value.split(' ');
+                            return datePart;
+                        }
+                    }
+                    
+                    return value;
+                };
+
+                const truncateText = (text, maxLength = 50) => {
+                    if (!text || text.length <= maxLength) return text;
+                    return text.substring(0, maxLength) + '...';
+                };
+
+                if (filteredData.length === 0) {
+                    return (
+                        <div className="bg-white rounded-lg shadow-sm p-8">
+                            <div className="text-center text-gray-500">
+                                <Search />
+                                <p className="mt-2">Nenhum resultado encontrado para "{searchTerm}"</p>
+                                <p className="text-sm mt-1">Tenta ajustar os termos de pesquisa</p>
+                            </div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="bg-white rounded-lg shadow-sm">
+                        <div className="px-4 py-2 bg-gray-50 border-b">
+                            <p className="text-sm text-gray-600">
+                                Mostrando <strong>{filteredData.length}</strong> de {data.length} escalas
+                            </p>
+                        </div>
+                        
+                        {/* Filtros */}
+                        <div className="px-4 py-2 border-b bg-gray-50">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                {['Direcao', 'Equipa', 'Escala', 'PoolSuporte'].map(column => (
+                                    <div key={column}>
+                                        <label className="block text-gray-600 mb-1">{column}:</label>
+                                        <select
+                                            value={filters[column] || 'all'}
+                                            onChange={(e) => setFilters({...filters, [column]: e.target.value})}
+                                            className="w-full p-1 border border-gray-300 rounded text-xs"
+                                        >
+                                            <option value="all">Todos</option>
+                                            {getUniqueValues(column).map(value => (
+                                                <option key={value} value={value}>{value}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {columns.map(column => (
+                                            <th 
+                                                key={column}
+                                                className="px-2 py-2 text-left text-xs font-semibold text-gray-700 cursor-pointer hover:bg-gray-100"
+                                                onClick={() => handleSort(column)}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    <span>{column}</span>
+                                                    {sort.column === column && (
+                                                        <span className="text-purple-600">
+                                                            {sort.direction === 'asc' ? '↑' : '↓'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredData.map((item, index) => (
+                                        <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                            {columns.map(column => (
+                                                <td key={column} className="px-2 py-2 text-xs text-gray-900 relative">
+                                                    <div 
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            if (item[column] && item[column].length > 50) {
+                                                                setExpandedCell(expandedCell === `${item.id}-${column}` ? null : `${item.id}-${column}`);
+                                                            }
+                                                        }}
+                                                        title={item[column] && item[column].length > 50 ? 'Clique para expandir' : ''}
+                                                    >
+                                                        {expandedCell === `${item.id}-${column}` ? 
+                                                            formatCellContent(item[column], column) : 
+                                                            formatCellContent(truncateText(item[column]), column)
+                                                        }
+                                                    </div>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            };
+
+            // Tabela Component com otimização de pesquisa
+            const DataTable = ({ data, type, onRemove, onEdit }) => {
+                // 🚨 OTIMIZAÇÃO: Só renderiza se houver pesquisa com 3+ caracteres
+                if (searchTerm.length < 3) {
+                    return null;
+                }
+
+                const filteredData = data.filter(item => 
+                    Object.values(item).some(value => 
+                        value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                );
+
+                if (filteredData.length === 0) {
+                    return (
+                        <div className="bg-white rounded-lg shadow-sm p-8">
+                            <div className="text-center text-gray-500">
+                                <Search />
+                                <p className="mt-2">Nenhum resultado encontrado para "{searchTerm}"</p>
+                                <p className="text-sm mt-1">Tenta ajustar os termos de pesquisa</p>
+                            </div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="bg-white rounded-lg shadow-sm">
+                        <div className="px-4 py-2 bg-gray-50 border-b">
+                            <p className="text-sm text-gray-600">
+                                Mostrando <strong>{filteredData.length}</strong> de {data.length} registos
+                            </p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {type === 'app' ? (
+                                            <>
+                                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Aplicação</th>
+                                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Sub-aplicação</th>
+                                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº de Catálogo Aplicacional</th>
+                                            </>
+                                        ) : (
+                                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Input</th>
+                                        )}
+                                        {type !== 'erro' && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Standby</th>}
+                                        {type === 'erro' ? (
+                                            <>
+                                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Erro Identificado</th>
+                                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Instrução</th>
+                                            </>
+                                        ) : (
+                                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Acções</th>
+                                        )}
+                                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredData.map((item, index) => (
+                                        <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                            {type === 'app' ? (
+                                                <>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{item.aplicacao}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{item.subAplicacao}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {(() => {
+                                                            const hasEscalaInfo = findEscalaInfo(item.catalogoAplicacional);
+                                                            return hasEscalaInfo ? (
+                                                                <span 
+                                                                    className="underline cursor-pointer text-blue-600 hover:text-blue-800"
+                                                                    onClick={() => showEscalaInfo(item.catalogoAplicacional)}
+                                                                >
+                                                                    {item.catalogoAplicacional}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{item.catalogoAplicacional}</span>
+                                                            );
+                                                        })()}
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <td className="px-4 py-3 text-sm text-gray-900">{item.input}</td>
+                                            )}
+                                            {type !== 'erro' && (
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        item.standby ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                                    }`}>
+                                                        {item.standby ? 'Com Standby' : 'Sem Standby'}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {type === 'erro' ? (
+                                                <>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{item.erroIdentificado}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{item.instrucao}</td>
+                                                </>
+                                            ) : (
+                                                <td className="px-4 py-3 text-sm text-gray-900">{item.acoes}</td>
+                                            )}
+                                            <td className="px-4 py-3 text-center">
+                                                {type === 'app' && onEdit && (
+                                                    <button
+                                                        onClick={() => onEdit(item)}
+                                                        className="text-blue-600 hover:text-blue-800 transition-colors mr-2"
+                                                    >
+                                                        <Edit />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => onRemove(item.id)}
+                                                    className="text-red-600 hover:text-red-800 transition-colors"
+                                                >
+                                                    <Trash />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+                    {/* Header */}
+                    <div className="bg-white shadow-sm border-b">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-2xl font-bold text-gray-900">MO3 - Control-m Batch Knowledge Database</h1>
+                                    <div className="flex items-center gap-4">
+                                        <p className="text-gray-600 text-sm">AndréTools - Por <a href="mailto:andrefbfsilva@gmail.com" className="text-blue-600 hover:text-blue-800 underline">André Filipe Silva</a></p>
+                                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                                            {appData.length + cadeiaData.length + erroData.length} registos totais
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => setEscalasModal(true)}
+                                        className="px-3 py-1 bg-violet-500 text-white text-sm rounded hover:bg-violet-600 flex items-center gap-1"
+                                    >
+                                        📅 Escalas de Suporte
+                                    </button>
+                                    <button
+                                        onClick={() => setImportModal(true)}
+                                        className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                                    >
+                                        📊 Importação Massa
+                                    </button>
+                                    <button
+                                        onClick={exportData}
+                                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 inline-block"
+                                    >
+                                        Exportar
+                                    </button>
+                                    <label className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 cursor-pointer inline-block">
+                                        Importar
+                                        <input type="file" accept=".json" onChange={importJsonData} className="hidden" />
+                                    </label>
+                                    <button
+                                        onClick={clearAllData}
+                                        className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                    >
+                                        Limpar Tudo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 py-8">
+                        {/* Cards dos Módulos */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <ModuleCard
+                                title="App"
+                                icon={Zap}
+                                color="from-blue-500 to-blue-600"
+                                data={appData}
+                                onAdd={() => setActiveModal('app')}
+                            />
+                            <ModuleCard
+                                title="Cadeia"
+                                icon={Settings}
+                                color="from-green-500 to-green-600"
+                                data={cadeiaData}
+                                onAdd={() => setActiveModal('cadeia')}
+                            />
+                            <ModuleCard
+                                title="Erro"
+                                icon={AlertCircle}
+                                color="from-red-500 to-red-600"
+                                data={erroData}
+                                onAdd={() => setActiveModal('erro')}
+                                extraButton={
+                                    <button
+                                        onClick={() => setLogAnalysisModal(true)}
+                                        className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <FileSearch />
+                                        Análise de Log
+                                    </button>
+                                }
+                            />
+                        </div>
+
+                        {/* Barra de Pesquisa com Indicador Otimizado */}
+                        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-gray-400">
+                                    <Search />
+                                </span>
+                                <input
+                                    key="main-search-field"
+                                    type="text"
+                                    placeholder="Pesquisar (mínimo 3 caracteres)..."
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            {searchTerm.length > 0 && searchTerm.length < 3 && (
+                                <p className="text-sm text-yellow-600 mt-2">
+                                    ⚡ Digite mais {3 - searchTerm.length} caractere{3 - searchTerm.length > 1 ? 's' : ''} para ativar a pesquisa
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Área de Conteúdo Otimizada */}
+                        {searchTerm.length < 3 ? (
+                            <EmptySearchState />
+                        ) : (
+                            <div className="space-y-8">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                        <span className="text-blue-500"><Zap /></span>
+                                        Módulo App
+                                    </h3>
+                                    <DataTable data={appData} type="app" onRemove={(id) => removeItem(id, 'app')} onEdit={editApp} />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                        <span className="text-green-500"><Settings /></span>
+                                        Módulo Cadeia
+                                    </h3>
+                                    <DataTable data={cadeiaData} type="cadeia" onRemove={(id) => removeItem(id, 'cadeia')} />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                        <span className="text-red-500"><AlertCircle /></span>
+                                        Módulo Erro
+                                    </h3>
+                                    <DataTable data={erroData} type="erro" onRemove={(id) => removeItem(id, 'erro')} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Modais */}
+                    {activeModal === 'app' && (
+                        <Modal title="Gestão de App" onClose={() => {
+                            setActiveModal(null);
+                            setEditingAppId(null);
+                            setAppForm({ aplicacao: '', subAplicacao: '', catalogoAplicacional: '', standby: true, acoes: '' });
+                        }}>
+                            <div className="space-y-4">
+                                <input
+                                    ref={appAplicacaoRef}
+                                    type="text"
+                                    placeholder="Aplicação"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    defaultValue={appForm.aplicacao}
+                                />
+                                <input
+                                    ref={appSubAplicacaoRef}
+                                    type="text"
+                                    placeholder="Sub-aplicação"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    defaultValue={appForm.subAplicacao}
+                                />
+                                <input
+                                    ref={appCatalogoRef}
+                                    type="text"
+                                    placeholder="Nº de Catálogo Aplicacional"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    defaultValue={appForm.catalogoAplicacional}
+                                />
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        ref={appStandbyRef}
+                                        type="checkbox"
+                                        defaultChecked={appForm.standby}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Com Standby?</span>
+                                </label>
+                                <textarea
+                                    ref={appAcoesRef}
+                                    placeholder="Acções"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    rows={3}
+                                    defaultValue={appForm.acoes}
+                                />
+                                <button
+                                    onClick={addApp}
+                                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                    {editingAppId ? "Atualizar" : "Adicionar"}
+                                </button>
+                            </div>
+                        </Modal>
+                    )}
+
+                    {activeModal === 'cadeia' && (
+                        <Modal title="Adicionar Cadeia" onClose={() => setActiveModal(null)}>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Input"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    value={cadeiaForm.input}
+                                    onChange={(e) => setCadeiaForm({...cadeiaForm, input: e.target.value})}
+                                />
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={cadeiaForm.standby}
+                                        onChange={(e) => setCadeiaForm({...cadeiaForm, standby: e.target.checked})}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Com Standby?</span>
+                                </label>
+                                <textarea
+                                    placeholder="Acções"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    rows={3}
+                                    value={cadeiaForm.acoes}
+                                    onChange={(e) => setCadeiaForm({...cadeiaForm, acoes: e.target.value})}
+                                />
+                                <button
+                                    onClick={addCadeia}
+                                    className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                                >
+                                    Adicionar
+                                </button>
+                            </div>
+                        </Modal>
+                    )}
+
+                    {activeModal === 'erro' && (
+                        <Modal title="Adicionar Erro" onClose={() => setActiveModal(null)}>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Input"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                    value={erroForm.input}
+                                    onChange={(e) => setErroForm({...erroForm, input: e.target.value})}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Erro Identificado"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                    value={erroForm.erroIdentificado}
+                                    onChange={(e) => setErroForm({...erroForm, erroIdentificado: e.target.value})}
+                                />
+                                <textarea
+                                    placeholder="Instrução"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                    rows={3}
+                                    value={erroForm.instrucao}
+                                    onChange={(e) => setErroForm({...erroForm, instrucao: e.target.value})}
+                                />
+                                <button
+                                    onClick={addErro}
+                                    className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Adicionar
+                                </button>
+                            </div>
+                        </Modal>
+                    )}
+
+                    {/* Modal de Análise de Log */}
+                    {logAnalysisModal && (
+                        <Modal title="🔍 Análise de Log" onClose={() => {
+                            setLogAnalysisModal(false);
+                            setLogContent('');
+                            setLogAnalysisResults(null);
+                        }} size="xl">
+                            <div className="space-y-4">
+                                {!logAnalysisResults ? (
+                                    // Formulário de input do log
+                                    <>
+                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                            <h4 className="font-semibold text-blue-800 mb-2">📋 Como funciona:</h4>
+                                            <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                                                <li>Cole o conteúdo do log na área abaixo</li>
+                                                <li>Clique em "Procurar Erro"</li>
+                                                <li>O sistema irá procurar por todos os códigos de erro registados no módulo Erro</li>
+                                                <li>Se encontrar correspondências, mostrará as instruções associadas</li>
+                                            </ol>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Cole o log aqui:
+                                            </label>
+                                            <textarea
+                                                className="w-full h-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 font-mono text-sm"
+                                                placeholder="Cole aqui o conteúdo do log para análise..."
+                                                value={logContent}
+                                                onChange={(e) => setLogContent(e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={analyzeLog}
+                                                className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <Search />
+                                                Procurar Erro
+                                            </button>
+                                            <button
+                                                onClick={() => setLogContent('')}
+                                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                                            >
+                                                Limpar
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    // Resultados da análise
+                                    <>
+                                        <div className="bg-green-50 p-4 rounded-lg">
+                                            <h4 className="font-semibold text-green-800 mb-2">
+                                                ✅ Análise completa! Encontrados {logAnalysisResults.length} códigos de erro
+                                            </h4>
+                                        </div>
+
+                                        {logAnalysisResults.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-500">
+                                                <AlertCircle />
+                                                <p className="mt-2">Nenhum código de erro registado foi encontrado no log.</p>
+                                                <p className="text-sm mt-1">Certifique-se de que os códigos de erro estão corretamente registados no módulo Erro.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4 max-h-96 overflow-y-auto">
+                                                {logAnalysisResults.map((result, index) => (
+                                                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                                                        <div className="mb-3">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-red-600 font-semibold">
+                                                                    Código: {result.errorCode}
+                                                                </span>
+                                                                <span className="text-sm text-gray-500">
+                                                                    ({result.occurrences.length} ocorrência{result.occurrences.length > 1 ? 's' : ''})
+                                                                </span>
+                                                            </div>
+                                                            {result.errorDescription && (
+                                                                <p className="text-sm text-gray-700 mb-1">
+                                                                    <strong>Erro:</strong> {result.errorDescription}
+                                                                </p>
+                                                            )}
+                                                            {result.instruction && (
+                                                                <div className="bg-blue-50 p-3 rounded mt-2">
+                                                                    <p className="text-sm">
+                                                                        <strong className="text-blue-800">Instrução:</strong>
+                                                                    </p>
+                                                                    <p className="text-blue-700 mt-1">{result.instruction}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="mt-3">
+                                                            <details className="cursor-pointer">
+                                                                <summary className="text-sm text-gray-600 hover:text-gray-800">
+                                                                    Ver ocorrências no log
+                                                                </summary>
+                                                                <div className="mt-2 space-y-2">
+                                                                    {result.occurrences.map((occ, occIndex) => (
+                                                                        <div key={occIndex} className="bg-gray-50 p-2 rounded text-xs">
+                                                                            <p className="text-gray-500 mb-1">Linha {occ.lineNumber}:</p>
+                                                                            <div className="space-y-1">
+                                                                                {occ.context.map((contextLine, contextIndex) => (
+                                                                                    <div
+                                                                                        key={contextIndex}
+                                                                                        className={`font-mono ${
+                                                                                            contextLine.isErrorLine
+                                                                                                ? 'bg-red-100 text-red-800 px-1 rounded'
+                                                                                                : 'text-gray-600'
+                                                                                        }`}
+                                                                                    >
+                                                                                        <span className="text-gray-400 mr-2">
+                                                                                            {contextLine.lineNumber}:
+                                                                                        </span>
+                                                                                        {contextLine.content}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </details>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={() => {
+                                                setLogContent('');
+                                                setLogAnalysisResults(null);
+                                            }}
+                                            className="w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                                        >
+                                            Nova Análise
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </Modal>
+                    )}
+
+                    {/* Modal de Importação Massa */}
+                    {importModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-bold text-gray-800">
+                                        📊 Importação Massa - Passo {importStep}/2
+                                    </h3>
+                                    <button 
+                                        onClick={() => {
+                                            setImportModal(false);
+                                            setImportStep(1);
+                                            setImportData(null);
+                                            setMappingConfig({});
+                                        }} 
+                                        className="text-gray-500 hover:text-gray-700 text-xl"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {/* Passo 1: Upload do Arquivo */}
+                                {importStep === 1 && (
+                                    <div className="space-y-4">
+                                        <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                                            <div className="text-4xl mb-4">📁</div>
+                                            <h4 className="text-lg font-semibold mb-2">Carrega o teu arquivo</h4>
+                                            <p className="text-gray-600 mb-4">
+                                                Suportamos Excel (.xlsx, .xls)
+                                            </p>
+                                            <label className="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer">
+                                                Escolher Arquivo
+                                                <input 
+                                                    type="file" 
+                                                    accept=".xlsx,.xls" 
+                                                    onChange={handleMassImport} 
+                                                    className="hidden" 
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                            <h5 className="font-semibold text-blue-800 mb-2">💡 Dicas:</h5>
+                                            <ul className="text-sm text-blue-700 space-y-1">
+                                                <li>• Para Excel: Cada sheet será tratada como uma fonte de dados separada</li>
+                                                <li>• Podes mapear qualquer coluna para os campos do MO3</li>
+                                                <li>• Módulo App agora tem "Aplicação" e "Sub-aplicação" como no Excel</li>
+                                                <li>• Os dados serão adicionados aos registos existentes</li>
+                                                <li>• Campo Standby: Qualquer texto contendo "sem standby" ou "semstandby" → ❌ | Tudo o resto → ✅</li>
+                                                <li>• Exemplos FALSE: "Sem StandbyVER NOTAS", "SemStandby", "123semstandby456", "semstandby" → ❌</li>
+                                                <li>• Exemplos TRUE: "Com Standby", "Ativo", "sem", "standby" (separados) → ✅</li>
+                                                <li>• Campo vazio ("") → ❌ (sem standby)</li>
+                                                <li>• ⚠️ A detecção ignora maiúsculas/minúsculas e funciona com ou sem espaço</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Passo 2: Mapeamento de Colunas */}
+                                {importStep === 2 && importData && (
+                                    <div className="space-y-4">
+                                        <h4 className="text-lg font-semibold">🎯 Configurar Mapeamento</h4>
+                                        
+                                        {/* Seleção de Tabela/Sheet */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Escolhe a tabela/sheet:
+                                            </label>
+                                            <select 
+                                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                                value={mappingConfig.selectedTable || ''}
+                                                onChange={(e) => setMappingConfig({...mappingConfig, selectedTable: e.target.value})}
+                                            >
+                                                <option value="">Seleciona...</option>
+                                                {Object.keys(importData).map(tableName => (
+                                                    <option key={tableName} value={tableName}>
+                                                        {tableName} ({importData[tableName].data.length} registos)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {mappingConfig.selectedTable && (
+                                            <>
+                                                {/* Módulo de Destino */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Módulo de destino:
+                                                    </label>
+                                                    <select 
+                                                        className="w-full p-2 border border-gray-300 rounded-lg"
+                                                        value={mappingConfig.targetModule || ''}
+                                                        onChange={(e) => setMappingConfig({...mappingConfig, targetModule: e.target.value})}
+                                                    >
+                                                        <option value="">Seleciona...</option>
+                                                        <option value="app">📱 App</option>
+                                                        <option value="cadeia">⚙️ Cadeia</option>
+                                                        <option value="erro">❌ Erro</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Mapeamento de Colunas */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {mappingConfig.targetModule === 'app' && (
+                                                        <>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Coluna para "Aplicação" *:
+                                                                </label>
+                                                                <select 
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                    value={mappingConfig.aplicacaoColumn || ''}
+                                                                    onChange={(e) => setMappingConfig({...mappingConfig, aplicacaoColumn: e.target.value})}
+                                                                >
+                                                                    <option value="">Seleciona...</option>
+                                                                    {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                        <option key={col} value={col}>{col}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Coluna para "Sub-aplicação":
+                                                                </label>
+                                                                <select 
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                    value={mappingConfig.subAplicacaoColumn || ''}
+                                                                    onChange={(e) => setMappingConfig({...mappingConfig, subAplicacaoColumn: e.target.value})}
+                                                                >
+                                                                    <option value="">Não mapear</option>
+                                                                    {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                        <option key={col} value={col}>{col}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Coluna para "Catálogo Aplicacional":
+                                                                </label>
+                                                                <select 
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                    value={mappingConfig.catalogoAplicacionalColumn || ''}
+                                                                    onChange={(e) => setMappingConfig({...mappingConfig, catalogoAplicacionalColumn: e.target.value})}
+                                                                >
+                                                                    <option value="">Não mapear</option>
+                                                                    {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                        <option key={col} value={col}>{col}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    
+                                                    {(mappingConfig.targetModule === 'cadeia' || mappingConfig.targetModule === 'erro') && (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                Coluna para "Input" *:
+                                                            </label>
+                                                            <select 
+                                                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                value={mappingConfig.inputColumn || ''}
+                                                                onChange={(e) => setMappingConfig({...mappingConfig, inputColumn: e.target.value})}
+                                                            >
+                                                                <option value="">Seleciona...</option>
+                                                                {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                    <option key={col} value={col}>{col}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
+
+                                                    {mappingConfig.targetModule !== 'erro' && (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                Coluna para "Standby":
+                                                            </label>
+                                                            <select 
+                                                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                value={mappingConfig.standbyColumn || ''}
+                                                                onChange={(e) => setMappingConfig({...mappingConfig, standbyColumn: e.target.value})}
+                                                            >
+                                                                <option value="">Não mapear</option>
+                                                                {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                    <option key={col} value={col}>{col}</option>
+                                                                ))}
+                                                            </select>
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                💡 Detecção: Procura "sem standby" ou "semstandby" em qualquer parte do texto<br/>
+                                                                ✅ "Ativo", "Com notas", "" → Com Standby<br/>
+                                                                ❌ "Sem Standby", "SemStandby", "123semstandby456" → Sem Standby
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {mappingConfig.targetModule !== 'erro' && (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                Coluna para "Acções":
+                                                            </label>
+                                                            <select 
+                                                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                value={mappingConfig.acoesColumn || ''}
+                                                                onChange={(e) => setMappingConfig({...mappingConfig, acoesColumn: e.target.value})}
+                                                            >
+                                                                <option value="">Não mapear</option>
+                                                                {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                    <option key={col} value={col}>{col}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
+
+                                                    {mappingConfig.targetModule === 'erro' && (
+                                                        <>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Coluna para "Erro Identificado":
+                                                                </label>
+                                                                <select 
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                    value={mappingConfig.erroColumn || ''}
+                                                                    onChange={(e) => setMappingConfig({...mappingConfig, erroColumn: e.target.value})}
+                                                                >
+                                                                    <option value="">Não mapear</option>
+                                                                    {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                        <option key={col} value={col}>{col}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Coluna para "Instrução":
+                                                                </label>
+                                                                <select 
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                                                    value={mappingConfig.instrucaoColumn || ''}
+                                                                    onChange={(e) => setMappingConfig({...mappingConfig, instrucaoColumn: e.target.value})}
+                                                                >
+                                                                    <option value="">Não mapear</option>
+                                                                    {importData[mappingConfig.selectedTable].columns.map(col => (
+                                                                        <option key={col} value={col}>{col}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+
+                                                {/* Preview dos Dados */}
+                                                <div>
+                                                    <h5 className="font-semibold mb-2">👀 Preview dos dados:</h5>
+                                                    <div className="max-h-40 overflow-auto bg-gray-50 p-3 rounded border">
+                                                        <table className="w-full text-xs">
+                                                            <thead>
+                                                                <tr>
+                                                                    {importData[mappingConfig.selectedTable].columns.slice(0, 5).map(col => (
+                                                                        <th key={col} className="text-left p-1 border-b">{col}</th>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {importData[mappingConfig.selectedTable].data.slice(0, 3).map((row, i) => (
+                                                                    <tr key={i}>
+                                                                        {importData[mappingConfig.selectedTable].columns.slice(0, 5).map(col => (
+                                                                            <td key={col} className="p-1 border-b">
+                                                                                {String(row[col] || '').substring(0, 20)}{row[col] && row[col].length > 20 ? '...' : ''}
+                                                                                {/* Mostra indicador se for a coluna de standby */}
+                                                                                {col === mappingConfig.standbyColumn && (
+                                                                                    <span className={`ml-1 text-xs ${
+                                                                                        String(row[col]).toLowerCase().includes('sem standby') || String(row[col]).toLowerCase().includes('semstandby')
+                                                                                        ? 'text-red-600' 
+                                                                                        : 'text-green-600'
+                                                                                    }`}>
+                                                                                        {String(row[col]).toLowerCase().includes('sem standby') || String(row[col]).toLowerCase().includes('semstandby') ? '❌' : '✅'}
+                                                                                    </span>
+                                                                                )}
+                                                                            </td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                {/* Preview da detecção de standby - ÚNICA OCORRÊNCIA */}
+                                                {mappingConfig.standbyColumn && mappingConfig.targetModule !== 'erro' && (
+                                                    <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
+                                                        <p className="font-semibold mb-1">🔍 Detecção "sem standby" ou "semstandby" na coluna selecionada:</p>
+                                                        <div className="space-y-1">
+                                                            {importData[mappingConfig.selectedTable].data.slice(0, 5).map((row, i) => {
+                                                                const value = row[mappingConfig.standbyColumn];
+                                                                const hasSemStandby = String(value).toLowerCase().includes('sem standby') || String(value).toLowerCase().includes('semstandby');
+                                                                return (
+                                                                    <div key={i} className="flex items-center gap-2">
+                                                                        <span className={hasSemStandby ? 'text-red-600' : 'text-green-600'}>
+                                                                            {hasSemStandby ? '❌' : '✅'}
+                                                                        </span>
+                                                                        <span className="text-gray-600">
+                                                                            "{value}" → {hasSemStandby ? 'Sem Standby' : 'Com Standby'}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                            {importData[mappingConfig.selectedTable].data.length > 5 && 
+                                                                <div className="text-gray-500">... e mais {importData[mappingConfig.selectedTable].data.length - 5} registos</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setImportStep(1)}
+                                                        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                                    >
+                                                        ← Voltar
+                                                    </button>
+                                                    <button
+                                                        onClick={applyMapping}
+                                                        disabled={!mappingConfig.selectedTable || !mappingConfig.targetModule || 
+                                                                 (mappingConfig.targetModule === 'app' && !mappingConfig.aplicacaoColumn) ||
+                                                                 ((mappingConfig.targetModule === 'cadeia' || mappingConfig.targetModule === 'erro') && !mappingConfig.inputColumn)}
+                                                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
+                                                    >
+                                                        Importar Dados! 🚀
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal de Escalas de Suporte */}
+                    {escalasModal && (
+                        <Modal title="📅 Escalas de Suporte" onClose={() => {
+                            setEscalasModal(false);
+                            setShowUpdateBanner(false);
+                        }} size="xl">
+                            <div className="space-y-4">
+                                {/* Banner de atualização */}
+                                {(checkUpdateBanner() || showUpdateBanner) && !isProcessing && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-yellow-600">⚠️</span>
+                                            <span className="text-yellow-800">Nova escala pode estar disponível!</span>
+                                        </div>
+                                        <label className="text-yellow-600 hover:text-yellow-800 px-3 py-1 bg-yellow-100 rounded text-sm cursor-pointer">
+                                            Clique para atualizar
+                                            <input 
+                                                type="file" 
+                                                accept=".zip,.xml" 
+                                                onChange={(e) => {
+                                                    if (e.target.files[0]) {
+                                                        processEscalasFile(e.target.files[0]);
+                                                    }
+                                                }}
+                                                className="hidden" 
+                                                disabled={isProcessing}
+                                            />
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* Informações da última atualização */}
+                                {lastEscalasUpdate && (
+                                    <div className="text-sm text-gray-600">
+                                        <strong>Última atualização:</strong> {new Date(lastEscalasUpdate).toLocaleDateString('pt-PT')} às {new Date(lastEscalasUpdate).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                )}
+
+                                {/* Drop Zone */}
+                                <div className="space-y-4">
+                                    {escalasData.length === 0 ? (
+                                        <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 transition-colors"
+                                             onDragOver={(e) => {
+                                                 e.preventDefault();
+                                                 e.currentTarget.classList.add('drag-over');
+                                             }}
+                                             onDragLeave={(e) => {
+                                                 e.currentTarget.classList.remove('drag-over');
+                                             }}
+                                             onDrop={(e) => {
+                                                 e.preventDefault();
+                                                 e.currentTarget.classList.remove('drag-over');
+                                                 const files = Array.from(e.dataTransfer.files);
+                                                 if (files.length > 0) {
+                                                     processEscalasFile(files[0]);
+                                                 }
+                                             }}>
+                                            <div className="text-4xl mb-4">📁</div>
+                                            <h4 className="text-lg font-semibold mb-2">
+                                                {isProcessing ? processingMessage : 'Nenhuma escala carregada'}
+                                            </h4>
+                                            {!isProcessing && (
+                                                <>
+                                                    <p className="text-gray-600 mb-4">
+                                                        Arraste o ficheiro EscalasSuporte.zip aqui
+                                                    </p>
+                                                    <label className="inline-block px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 cursor-pointer">
+                                                        Escolher Arquivo
+                                                        <input 
+                                                            type="file" 
+                                                            accept=".zip,.xml" 
+                                                            onChange={(e) => {
+                                                                if (e.target.files[0]) {
+                                                                    processEscalasFile(e.target.files[0]);
+                                                                }
+                                                            }}
+                                                            className="hidden" 
+                                                            disabled={isProcessing}
+                                                        />
+                                                    </label>
+                                                </>
+                                            )}
+                                            {isProcessing && (
+                                                <div className="mt-4">
+                                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Controles quando há dados */}
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex gap-2">
+                                                    <label className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 cursor-pointer">
+                                                        📁 Carregar Novo
+                                                        <input 
+                                                            type="file" 
+                                                            accept=".zip,.xml" 
+                                                            onChange={(e) => {
+                                                                if (e.target.files[0]) {
+                                                                    processEscalasFile(e.target.files[0]);
+                                                                }
+                                                            }}
+                                                            className="hidden" 
+                                                            disabled={isProcessing}
+                                                        />
+                                                    </label>
+                                                    <button
+                                                        onClick={clearEscalasData}
+                                                        className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                                        disabled={isProcessing}
+                                                    >
+                                                        🗑️ Limpar
+                                                    </button>
+                                                </div>
+                                                <span className="text-sm text-gray-600">
+                                                    {escalasData.length} escalas carregadas
+                                                </span>
+                                            </div>
+
+                                            {/* Pesquisa */}
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3 text-gray-400">
+                                                    <Search />
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Pesquisar escalas..."
+                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                                    value={escalasSearchTerm}
+                                                    onChange={(e) => setEscalasSearchTerm(e.target.value)}
+                                                    autoFocus
+                                                />
+                                            </div>
+
+                                            {/* Tabela de Escalas - sempre visível */}
+                                            <EscalasTable 
+                                                data={escalasData} 
+                                                searchTerm={escalasSearchTerm}
+                                                filters={escalasFilters}
+                                                setFilters={setEscalasFilters}
+                                                sort={escalasSort}
+                                                setSort={setEscalasSort}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </Modal>
+                    )}
+
+                    {/* Card overlay com informações das escalas */}
+                    {escalasInfoCard && (
+                        <div 
+                            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                            onClick={() => setEscalasInfoCard(null)}
+                        >
+                            <div 
+                                className={`bg-white rounded-xl p-6 w-full ${escalasInfoCard.hasDuplicates ? 'max-w-lg' : 'max-w-md'} mx-4 shadow-2xl max-h-[90vh] overflow-y-auto`}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-gray-800">
+                                        Informação de Standby da App {escalasInfoCard.catalogoAplicacional}
+                                    </h3>
+                                    <button 
+                                        onClick={() => setEscalasInfoCard(null)}
+                                        className="text-gray-500 hover:text-gray-700 text-xl"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                    {/* Aviso de duplicação */}
+                                    {escalasInfoCard.hasDuplicates && (
+                                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-red-600 text-xl">⚠️</span>
+                                                <strong className="text-red-800">Atenção: Esta aplicação tem duas escalas! Verificar.</strong>
+                                            </div>
+                                            <div className="mt-2 space-y-2">
+                                                {escalasInfoCard.allEscalas.map((escala, index) => (
+                                                    <div key={index} className="text-sm text-red-700 bg-red-100 p-2 rounded">
+                                                        <strong>Escala {index + 1}:</strong>
+                                                        <br />
+                                                        <span className="font-medium">PoolSuporte:</span> {escala.PoolSuporte || 'N/A'}
+                                                        <br />
+                                                        <span className="font-medium">Data Início:</span> {escala.Inicio || 'N/A'}
+                                                        {escala.Equipa && (
+                                                            <>
+                                                                <br />
+                                                                <span className="font-medium">Equipa:</span> {escala.Equipa}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Informações de contacto e escalada */}
+                                    {escalasInfoCard.hasDuplicates ? (
+                                        /* Quando há duplicação, mostrar informação de ambas as escalas */
+                                        <div className="space-y-4">
+                                            {escalasInfoCard.allEscalas.map((escala, index) => (
+                                                <div key={index} className="border border-gray-200 rounded-lg p-3">
+                                                    <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                                            Escala {index + 1}
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            ({escala.PoolSuporte || 'N/A'})
+                                                        </span>
+                                                    </h4>
+                                                    
+                                                    {/* Contactos desta escala */}
+                                                    <div className="space-y-2 mb-3">
+                                                        {escala.Contacto1 && (
+                                                            <div className="text-sm text-gray-700">
+                                                                <strong>Contacto1:</strong> {escala.Contacto1}
+                                                            </div>
+                                                        )}
+                                                        {escala.Contacto2 && (
+                                                            <div className="text-sm text-gray-700">
+                                                                <strong>Contacto2:</strong> {escala.Contacto2}
+                                                            </div>
+                                                        )}
+                                                        {escala.Contacto3 && (
+                                                            <div className="text-sm text-gray-700">
+                                                                <strong>Contacto3:</strong> {escala.Contacto3}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Processo de escalada desta escala */}
+                                                    <div className="pt-2 border-t border-gray-100">
+                                                        <h5 className="font-medium text-gray-800 mb-2 text-sm">Processo de Escalada:</h5>
+                                                        {escala.Coordenador && (
+                                                            <div className="text-sm text-gray-700 mb-1">
+                                                                <strong>Coordenador:</strong> {escala.Coordenador}
+                                                            </div>
+                                                        )}
+                                                        {escala.Diretor && (
+                                                            <div className="text-sm text-gray-700">
+                                                                <strong>Diretor:</strong> {escala.Diretor}
+                                                            </div>
+                                                        )}
+                                                        {!escala.Coordenador && !escala.Diretor && (
+                                                            <div className="text-sm text-gray-500 italic">
+                                                                Sem informação de escalada
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* Quando há apenas uma escala, mostrar como antes */
+                                        <>
+                                            {/* Informações de contacto */}
+                                            {escalasInfoCard.Contacto1 && (
+                                                <div className="text-sm text-gray-700">
+                                                    <strong>Contacto1:</strong> {escalasInfoCard.Contacto1}
+                                                </div>
+                                            )}
+                                            {escalasInfoCard.Contacto2 && (
+                                                <div className="text-sm text-gray-700">
+                                                    <strong>Contacto2:</strong> {escalasInfoCard.Contacto2}
+                                                </div>
+                                            )}
+                                            {escalasInfoCard.Contacto3 && (
+                                                <div className="text-sm text-gray-700">
+                                                    <strong>Contacto3:</strong> {escalasInfoCard.Contacto3}
+                                                </div>
+                                            )}
+                                            
+                                            <div className="pt-3 border-t border-gray-200">
+                                                <h4 className="font-semibold text-gray-800 mb-2">Processo de Escalada:</h4>
+                                                {escalasInfoCard.Coordenador && (
+                                                    <div className="text-sm text-gray-700 mb-1">
+                                                        <strong>Coordenador:</strong> {escalasInfoCard.Coordenador}
+                                                    </div>
+                                                )}
+                                                {escalasInfoCard.Diretor && (
+                                                    <div className="text-sm text-gray-700">
+                                                        <strong>Diretor:</strong> {escalasInfoCard.Diretor}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* Chamada de atenção quando há duplicação */}
+                                    {escalasInfoCard.hasDuplicates && (
+                                        <div className="pt-3 border-t border-gray-200">
+                                            <div className="text-sm text-orange-800 bg-orange-50 border border-orange-200 p-3 rounded-lg flex items-center gap-2">
+                                                <span className="text-orange-600 text-lg">⚠️</span>
+                                                <strong>Por favor validar qual é a escala correcta!</strong>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<MO3Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

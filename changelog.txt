@@ -1,0 +1,274 @@
+# CHANGELOG - MO3 (Versão LocalStorage)
+# Control-m Batch Knowledge Database
+# AndréTools - Por André Filipe Silva
+# Formato baseado em Keep a Changelog (https://keepachangelog.com/)
+# Versionamento Semântico (https://semver.org/)
+
+## [1.2.6] - 2025-08-26
+
+### 🚨 CRITICAL UX FIX - Digitação Fluida nos Campos
+- **PROBLEMA RESOLVIDO**: Campos de input perdiam foco após cada tecla digitada, impossibilitando digitação fluida
+- **MÚLTIPLAS CAUSAS IDENTIFICADAS**: React development mode + atributos "key" + handlers inline + inputs controlados complexos
+- **SOLUÇÃO DEFINITIVA**: Migração para inputs não controlados com refs para modais de edição
+
+### Fixed
+- 💥 **BUG CRÍTICO - Perda de Foco em Inputs**: Inputs perdiam foco após cada tecla digitada
+- 🔑 **Atributos "key" Problemáticos**: Removidos keys que causavam recriação de componentes
+- 🚀 **React Development Mode**: Migrado para React production (sem double rendering)
+- 📝 **Handlers Inline Instáveis**: Convertidos para funções estáveis declaradas
+- 🎯 **Inputs Controlados Complexos**: Substituídos por uncontrolled inputs + refs
+
+### Changed  
+- ⚡ **React Production Mode**: Migrado de development para production (performance + estabilidade)
+- 🏷️ **Títulos de Modal Estáticos**: Removido título dinâmico baseado em editingId
+- 🔗 **Arquitetura de Inputs**: Modal APP agora usa uncontrolled inputs com defaultValue + refs
+- 📋 **Handlers Estáveis**: Funções onChange declaradas fora do JSX para estabilidade
+
+### Added
+- 📚 **Documentação Avançada**: Guia completo de prevenção de problemas de digitação
+- 🛡️ **Checklist de Prevenção**: Lista de verificação para novos inputs
+- 🔧 **Debugging Steps**: Processo estruturado para diagnosticar problemas de foco
+- 📋 **Sinais de Alerta**: Identificação precoce de problemas de UX
+
+### Technical Details
+- **Solução Híbrida**: `React.useRef()` + `defaultValue` + `useEffect` para sincronização
+- **Leitura de Valores**: `inputRef.current?.value || fallbackValue` na submissão
+- **Preenchimento Automático**: `useEffect` preenche refs quando entra em modo edição
+- **Arquitetura**: Uncontrolled inputs mantêm foco + refs permitem leitura quando necessário
+- **Performance**: React.production.min.js elimina re-renders desnecessários
+
+---
+
+## [1.2.5] - 2025-08-26
+
+### Fixed
+- 🎯 **BUG CRÍTICO - Escalas Obsoletas em Conflitos**: Refinada detecção para mostrar apenas escalas ativas por PoolSuporte
+- ⏰ **Sobreposição Temporal**: Corrigido critério de sobreposição (< em vez de <=) para evitar detectar "toque" como conflito
+- 🧠 **Lógica Inteligente de Agrupamento**: Agrupa por PoolSuporte e compara apenas as mais recentes
+
+### Changed
+- 📊 **Detecção Baseada em Pools Ativos**: Só mostra conflito entre PoolSuporte diferentes com escalas ativas
+- 🔍 **Interface Limpa**: Remove escalas obsoletas dos cards de duplicação
+- 📋 **Logging Estruturado**: Console mostra agrupamento por pool e identificação de escalas ativas
+
+### Added
+- 📦 **Agrupamento por PoolSuporte**: Nova lógica que agrupa escalas por pool antes de comparar
+- 🏆 **Escalas Ativas**: Identifica e trabalha apenas com a escala mais recente de cada pool
+
+### Technical Details
+- Algoritmo de agrupamento: `groupedByPool[pool].push(escala)`
+- Filtro de escalas ativas: `latestByPool[pool] = poolEscalas[0]`
+- Detecção de conflito: `activeEscalas.length > 1`
+- Sobreposição temporal: `inicio1 < fim2 && inicio2 < fim1` (evita "toque")
+- Interface: `allEscalas: activeEscalas` (apenas escalas ativas)
+
+---
+
+## [1.2.4] - 2025-08-26
+
+### Fixed
+- 🎯 **BUG CRÍTICO - Duplicações por PoolSuporte**: Refinada lógica de duplicação baseada em PoolSuporte
+- 🧠 **Lógica Inteligente**: Mesmo PoolSuporte = substituição natural, PoolSuporte diferente = duplicação real
+
+### Changed
+- 🔍 **Detecção de Duplicação Refinada**: Considera PoolSuporte como critério principal de conflito
+- 📊 **Logging Melhorado**: Console mostra motivo da duplicação (PoolSuporte vs Temporal)
+
+### Technical Details
+- Nova lógica: `poolSuporteDifferent OR (samePoolSuporte AND temporalOverlap)`
+- Escalas com mesmo PoolSuporte e datas diferentes → Mostra apenas a mais recente
+- Escalas com PoolSuporte diferente → Sempre marca como duplicação
+- Variable `duplicationReason` identifica causa específica do conflito
+
+---
+
+## [1.2.3] - 2025-08-26
+
+### Fixed
+- 🐛 **BUG - Critério de Data Mais Recente**: Corrigido parser de datas que era muito restritivo (year >= 2020)
+- 📅 **Validação de Anos Flexível**: Aceita escalas desde 1990 até 2050 para maior abrangência
+- 🔢 **Suporte Anos 2-Dígitos**: Conversão automática de anos YY para YYYY (00-49 → 2000-2049, 50-99 → 1950-1999)
+- ⚖️ **Ordenação Consistente**: Adicionado critério secundário por PoolSuporte quando datas são iguais
+- 🎯 **BUG CRÍTICO - Duplicações Falsas**: Corrigido detector que mostrava duplicação para escalas sequenciais
+
+### Changed
+- 📊 **Logging Melhorado**: Console logs mais detalhados mostrando todas as escalas ordenadas por data
+- 🔍 **Debug Avançado**: Informação adicional sobre timestamp parsing e seleção de escalas
+- 🧠 **Detecção Inteligente de Duplicações**: Só marca como duplicação quando há sobreposição temporal real
+
+### Added
+- ⏰ **Verificação de Sobreposição Temporal**: Função checkTemporalOverlap() para identificar conflitos reais
+- 🔄 **Substituições Naturais**: Reconhece escalas que são meras atualizações/substituições temporais
+
+### Technical Details
+- Parser de datas expandido para aceitar range de 1990-2050 (anteriormente 2020-2050)
+- Função parseDate() com suporte para anos de 2 dígitos
+- Ordenação secundária por PoolSuporte.localeCompare() em caso de datas iguais
+- Logs estruturados mostrando processo completo de seleção da escala mais recente
+- Algoritmo de sobreposição temporal: escala1.inicio ≤ escala2.fim && escala2.inicio ≤ escala1.fim
+- Escalas sem data fim são consideradas ativas (comparadas com data atual)
+- hasDuplicates = false quando escalas são apenas substituições sequenciais
+
+---
+
+## [1.2.2] - 2025-08-12
+
+### Added
+- 🚨 **Interface Avançada de Duplicações**: Card especializado para gestão de escalas duplicadas
+- 📋 **Contactos Completos**: Mostra Contacto1, Contacto2, Contacto3 de AMBAS as escalas quando há duplicação
+- 🏢 **Processos de Escalada**: Exibe Coordenador e Diretor de cada escala separadamente
+- ⚠️ **Validação Manual**: Prompt "Por favor validar qual é a escala correcta!" substituindo seleção automática
+
+### Changed
+- 🔍 **Detecção de Duplicações**: Função `findEscalaInfo()` retorna objeto com `hasDuplicates` e `allEscalas`
+- 📏 **Modal Responsivo**: Card expande automaticamente (max-w-lg) quando há duplicação para acomodar informação extra
+- 🎨 **Interface Visual**: Aviso vermelho proeminente + secções separadas para cada escala com PoolSuporte identificado
+
+### Technical Details
+- Estrutura de retorno: `{ ...escalaData, hasDuplicates: boolean, allEscalas: array }`
+- Interface condicional: layout diferente para escalas únicas vs duplicadas
+- Logs de debug melhorados com PoolSuporte para troubleshooting de duplicações
+- Compatibilidade mantida: escala "ativa" continua acessível via propriedades base
+
+---
+
+## [1.2.1] - 2025-08-05
+
+### Fixed
+- 🐛 **BUG - Importação Excel Standby**: Corrigido campo vazio interpretado como TRUE, agora campo vazio = sem standby (FALSE)
+- 🔍 **BUG - Busca Escalas**: Corrigido problema de espaços em branco nos catálogos aplicacionais impedindo abertura dos cards
+- 🧹 **Comparação Robusta**: Implementado `.trim()` nas comparações de ITSMAssetID para ignorar espaços acidentais
+
+### Changed
+- 📝 **Documentação Import**: Atualizada descrição de exemplos para refletir que campo vazio → ❌ (sem standby)
+
+### Technical Details
+- Função `findEscalaInfo()` agora usa comparação `toString().trim()` para robustez
+- Sistema de debug temporário implementado e removido após identificação do problema
+- Logs de debug melhorados para troubleshooting futuro
+
+---
+
+## [1.2.0] - 2025-08-04
+
+### Added
+- 🌸 **Integração com Escalas de Suporte**: Modal para carregar e consultar escalas XML/ZIP
+- 🔍 **Detecção de Conflitos CA**: Identifica automaticamente Catálogos Aplicacionais duplicados
+- 📅 **Critério de Data Mais Recente**: Resolve conflitos usando coluna INICIO mais recente
+- 🏷️ **Campo Catálogo Aplicacional**: Novo campo no módulo App com ligação às escalas
+- 🔄 **Cards com Informações de Escalas**: Clique nos CA para ver contactos e hierarquia
+
+### Fixed
+- 📅 **BUG CRÍTICO - Formato de Datas**: Corrigido parsing de DD/MM/YYYY vs MM/DD/YYYY americano
+- ⏹️ **Problemas de Foco**: Adicionadas chaves únicas aos campos de entrada para manter foco
+- 🔄 **Migração de Dados**: Incluir catalogoAplicacional em migrações automáticas
+
+### Changed
+- 📝 **Documentação**: Atualizado CLAUDE.md com padrões de datas e novas funcionalidades
+- 🧙 **Estados Removidos**: Eliminados estados SEED/SPROUTING/etc. não utilizados
+
+### Technical Details
+- Parser de datas robusto com validação de formato português
+- Função findEscalaInfo() com resolução de conflitos por timestamp
+- Logs de debug para troubleshooting de conflitos CA
+- Suporte completo para XML das Escalas de Suporte do Control-M
+
+---
+
+## [1.1.0] - 2025-07-31
+
+### 🚨 CRITICAL PERFORMANCE FIX
+- **PROBLEMA RESOLVIDO**: Aplicação consumia 500MB+ de RAM para um JSON de apenas 76KB
+- **CAUSA**: TailwindCSS CDN carregava ~50.000 classes CSS não utilizadas (~180MB)
+- **SOLUÇÃO**: Substituído CDN por CSS inline otimizado com apenas as classes necessárias
+- **IMPACTO**: Redução de 231MB para ~50MB no Chrome (78% menos memória!)
+
+### Added
+- Sistema de pesquisa otimizada com mínimo de 3 caracteres
+- Estado vazio elegante quando não há pesquisa ativa
+- Indicador de caracteres restantes para ativar pesquisa
+- Contador de resultados encontrados vs total de registos
+- Documentação inline detalhada sobre otimização Tailwind
+
+### Changed
+- Removido TailwindCSS CDN (`https://cdn.tailwindcss.com`)
+- Implementado CSS inline personalizado com ~200 classes (vs ~50.000 do CDN)
+- Tabelas agora só renderizam quando há pesquisa ativa (3+ caracteres)
+- Interface simplificada sem renderizar milhares de registos desnecessariamente
+- CSS organizado por categorias para facilitar manutenção
+
+### Performance Improvements
+- **Memória antes**: 500MB (Edge) / 162MB (Chrome) com dados carregados
+- **Memória depois**: ~40-50MB com pesquisa otimizada
+- **Renderização**: De 5638 componentes sempre visíveis para 0-50 conforme pesquisa
+- **Tempo de carregamento**: Instantâneo (não precisa renderizar tabelas inicialmente)
+
+### Technical Details
+- Heap Snapshot revelou 182MB (79%) eram "Other non-JS objects (HTML/CSS)"
+- React Development Mode com 62,473 FiberNodes
+- Solução: CSS inline + lazy rendering de componentes
+- Compatível com Chrome e Edge (embora Edge use mais memória por design)
+
+---
+
+## [1.0.0] - 2025-07-28
+
+### Initial Release - MO3 (Versão LocalStorage)
+
+### Core Features
+- **Módulo App**: Gestão de aplicações e sub-aplicações com controlo de standby
+- **Módulo Cadeia**: Controlo de cadeias de processos batch
+- **Módulo Erro**: Base de conhecimento de erros e instruções de resolução
+- **Análise de Logs**: Identificação automática de erros em logs com contexto
+- **Importação em Massa**: Suporte completo para Excel (.xlsx, .xls)
+- **Persistência LocalStorage**: Dados offline sem necessidade de backend
+
+### User Interface
+- Design moderno com React 18 e gradientes vibrantes
+- Cards informativos com contadores de registos
+- Interface responsiva para desktop e tablet
+- Ícones SVG inline personalizados
+- Modais para adição e edição de dados
+
+### Import/Export
+- Export completo em JSON com timestamp
+- Import de backups JSON
+- Importação massa de Excel com mapeamento flexível
+- Detecção inteligente de campos "Sem Standby" (case-insensitive)
+- Preview de dados antes da importação
+
+### Search & Filter
+- Pesquisa global em todos os campos
+- Filtro em tempo real
+- Destaque de resultados
+
+### Technical Stack
+- React 18 (Development mode)
+- Babel standalone para transpilação no browser
+- XLSX library para processamento Excel
+- LocalStorage para persistência de dados
+- TailwindCSS via CDN
+- Single-file application (~15KB HTML)
+
+### Developer
+- André Filipe Silva
+- andrefbfsilva@gmail.com
+- AndréTools - Faster Operational Knowledge
+
+---
+
+# Notas de Versão
+
+## Convenções
+- **MAJOR**: Mudanças incompatíveis na estrutura de dados
+- **MINOR**: Novas funcionalidades mantendo compatibilidade
+- **PATCH**: Correções de bugs e melhorias menores
+
+## Categorias
+- **Added**: Funcionalidades novas
+- **Changed**: Alterações em funcionalidades existentes
+- **Deprecated**: Funcionalidades marcadas para remoção
+- **Removed**: Funcionalidades removidas
+- **Fixed**: Correções de bugs
+- **Security**: Correções de vulnerabilidades
+- **Performance Improvements**: Otimizações de performance

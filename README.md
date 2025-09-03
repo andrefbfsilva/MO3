@@ -17,7 +17,7 @@ Aplicação web para base de conhecimento do Control-M.
 
 1. Abrir o ficheiro `index.html` no browser
 2. Adicionar dados nos módulos usando os botões "+"
-3. Importar escalas através do menu
+3. Para importação de escalas o código deve ser adaptado às escalas que estão a usar atualmente
 
 ---
 *Desenvolvido por André Filipe Silva*

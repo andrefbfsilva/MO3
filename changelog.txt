@@ -4,6 +4,29 @@
 # Formato baseado em Keep a Changelog (https://keepachangelog.com/)
 # Versionamento Semântico (https://semver.org/)
 
+## [1.2.7] - 2026-06-20
+
+### 🚨 CRITICAL STABILITY FIX - Versões dos CDNs Fixadas
+- **PROBLEMA RESOLVIDO**: A app ficava em branco "do nada" depois de meses a funcionar, sem qualquer alteração ao código
+- **CAUSA**: Os scripts de CDN usavam ranges (`react@18`) ou nenhuma versão (`@babel/standalone`), pelo que o CDN servia a versão mais recente publicada nesse dia — quando o Babel/React publicavam uma versão nova, a app partia sozinha
+- **SOLUÇÃO**: Fixar todas as versões de CDN em valores exatos e conhecidos; a versão só muda quando atualizada manualmente
+
+### Changed
+- 📌 **react**: `react@18` → `react@18.3.1` (versão exata)
+- 📌 **react-dom**: `react-dom@18` → `react-dom@18.3.1` (mesma versão exata que o react — mismatch parte a app)
+- 📌 **@babel/standalone**: sem versão → `@babel/standalone@7.29.7` (versão exata e estável da série 7)
+- 🔒 **xlsx@0.18.5** e **jszip@3.10.1**: mantidos (já estavam fixos)
+
+### Added
+- 📝 **Comentário Explicativo**: Bloco no `<head>` a documentar porque as versões estão fixas, no estilo dos comentários AndréTools
+
+### Technical Details
+- Versões verificadas no npm registry antes de fixar (últimas estáveis das séries 18 e 7)
+- CDNs e caminhos de ficheiro mantidos (unpkg para react/react-dom/babel, cdnjs para xlsx/jszip)
+- Sem alterações ao CSS, componente React ou lógica — apenas os 5 scripts e o comentário
+
+---
+
 ## [1.2.6] - 2025-08-26
 
 ### 🚨 CRITICAL UX FIX - Digitação Fluida nos Campos

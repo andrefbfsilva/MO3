@@ -461,13 +461,6 @@
                 }
             }, [lastEscalasUpdate]);
 
-            // Verificar banner quando modal abre
-            React.useEffect(() => {
-                if (escalasModal && checkUpdateBanner()) {
-                    setShowUpdateBanner(true);
-                }
-            }, [escalasModal, lastEscalasUpdate]);
-            
             // Estado para modais e formulários
             const [activeModal, setActiveModal] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
@@ -914,6 +907,13 @@
                 
                 return false;
             };
+
+            // Verificar banner quando modal abre
+            React.useEffect(() => {
+                if (escalasModal && checkUpdateBanner()) {
+                    setShowUpdateBanner(true);
+                }
+            }, [escalasModal, lastEscalasUpdate]);
 
             // Função para formatar contactos
             const formatContact = (contactStr) => {

@@ -4,9 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MO3 - Control-m Batch Knowledge Database</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!--
+    🚨 OTIMIZAÇÃO CRÍTICA - VERSÕES FIXAS DOS CDNs 🚨
+
+    Todas as versões abaixo estão FIXADAS em valores exatos PROPOSITADAMENTE.
+
+    PROBLEMA: Com ranges (react@18) ou sem versão (@babel/standalone), o CDN serve
+    automaticamente a versão mais recente publicada nesse dia. Quando o Babel ou o
+    React publicam uma versão nova, a app pode partir sozinha — ficar em branco —
+    sem nenhuma alteração ao nosso código. Foi exatamente o que aconteceu.
+
+    SOLUÇÃO: Fixar versões exatas e conhecidas. A app só muda de versão quando NÓS
+    atualizarmos estes números à mão.
+
+    REGRA: react e react-dom TÊM de ter a MESMA versão exata (um mismatch parte a app).
+
+    Autor: André Filipe Silva - AndréTools
+    -->
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
